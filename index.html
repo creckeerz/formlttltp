@@ -339,10 +339,14 @@
   // Sudah ditambahkan dengan benar
   formData.append("action", "submit");
 
-  fetch("https://script.google.com/macros/s/AKfycbzuQdVT8CCtQ2NycljaBHrlyUbeltKGHrZDk-i7dDKjrtPpkAhp4buoR8sSPIcNOlQqXQ/exec", {
-    method: "POST",
-    body: formData
-  })
+  fetch('https://script.google.com/macros/s/AKfycbx5onV85vWcnGkWW2qBUeJcjfwZZmLtfMo3whfYCOzYTOT-WghevuHb1z8Gm4AG-zDJUw/exec', {
+  method: "POST",
+  body: formData,
+  headers: {
+    "Accept": "application/json"
+  }
+})
+
   .then(res => res.json())
   .then(res => {
     if (res.status === "success") {
