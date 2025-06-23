@@ -333,15 +333,31 @@
   }
 
   function submitForm() {
-    const form = document.getElementById("multiStepForm");
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-    console.log("Data akan dikirim:", data);
-    alert("✅ Data berhasil dikirim (simulasi).");
-    form.reset();
-    currentStep = 0;
-    showStep(currentStep);
-  }
+  const form = document.getElementById("multiStepForm");
+  const formData = new FormData(form);
+
+  // Sudah ditambahkan dengan benar
+  formData.append("action", "submit");
+
+  fetch("https://script.google.com/macros/s/AKfycbXXXXXXX/exec", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(res => {
+    if (res.status === "success") {
+      alert(res.message);
+      form.reset();
+      currentStep = 0;
+      showStep(currentStep);
+    } else {
+      alert("❌ Gagal: " + res.message);
+    }
+  })
+  .catch(err => {
+    alert("❌ Error jaringan: " + err);
+  });
+}
 
   showStep(currentStep);
 </script>
