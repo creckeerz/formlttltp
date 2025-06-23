@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Form Monitoring LTT & LTP</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      padding: 0;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .step {
+      display: none;
+    }
+    .step.active {
+      display: block;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #3498db;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button[disabled] {
+      background: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>📋 Form Monitoring LTT & LTP</h2>
+  <form id="multiStepForm">
+
+    <!-- Step 1: Identitas -->
+    <div class="step active">
+      <label>Timestamp</label>
+      <input type="datetime-local" name="Timestamp" required>
+
+      <label>Periode Monitoring</label>
+      <input type="text" name="Periode Monitoring" placeholder="Contoh: Juni 2025" required>
+
+      <label>Nama Penyuluh</label>
+      <input type="text" name="Nama Penyuluh" required>
+
+      <label>Kecamatan</label>
+      <select name="Kecamatan" required>
+        <option value="">Pilih Kecamatan</option>
+        <!-- Akan diisi otomatis -->
+      </select>
+
+      <label>Desa</label>
+      <select name="Desa" required>
+        <option value="">Pilih Desa</option>
+      </select>
+    </div>
+
+    <!-- Step 2: Data LTT -->
+    <div class="step">
+      <label>LTT Padi Reguler (Ha)</label>
+      <input type="number" name="LTT Padi Reguler (Ha)">
+
+      <label>LTT Padi Oplah (Ha)</label>
+      <input type="number" name="LTT Padi Oplah (Ha)">
+
+      <label>LTT Padi Irigasi Pompa (Ha)</label>
+      <input type="number" name="LTT Padi Irigasi Pompa   (Ha)">
+
+      <label>LTT Padi Gogo / Lahan Kering</label>
+      <input type="number" name="LTT Padi Gogo / Lahan Kering">
+
+      <label>LTT Jagung (Ha)</label>
+      <input type="number" name="LTT Jagung (Ha)">
+    </div>
+
+    <!-- Step 3: Data LTP -->
+    <div class="step">
+      <label>LTP Padi Reguler (Ha)</label>
+      <input type="number" name="LTP Padi Reguler (Ha)">
+      <label>Provitas Padi Reguler (Ku/Ha)</label>
+      <input type="number" name="Provitas Padi Reguler (Ku/Ha)">
+
+      <label>LTP Padi Oplah (Ha)</label>
+      <input type="number" name="LTP Padi Oplah (Ha)">
+      <label>Provitas Padi Oplah (Ku/Ha)</label>
+      <input type="number" name="Provitas Padi Oplah (Ku/Ha)">
+
+      <label>LTP Padi Irigasi Pompa (Ha)</label>
+      <input type="number" name="LTP Padi Irigasi Pompa (Ha)">
+      <label>Provitas Padi irigasi Pompa (Ku/Ha)</label>
+      <input type="number" name="Provitas Padi irigasi Pompa (Ku/Ha)">
+
+      <label>LTP Padi Gogo / Lahan Kering</label>
+      <input type="number" name="LTP Padi Gogo / Lahan Kering">
+
+      <label>LTP Jagung (Ha)</label>
+      <input type="number" name="LTP Jagung (Ha)">
+      <label>Provitas Jagung (Ku/Ha)</label>
+      <input type="number" name="Provitas Jagung (Ku/Ha)">
+    </div>
+
+    <!-- Step 4: Data Tambahan -->
+    <div class="step">
+      <label>Luas Baku Sawah (LBS)</label>
+      <input type="number" name="Luas Baku Sawah (LBS)">
+      <label>IP Existing</label>
+      <input type="number" name="IP Existing">
+      <label>Luas Tanam Tahun Sebelumnya (Ha)</label>
+      <input type="number" name="Luas Tanam Tahun Sebelumnya (Ha)">
+      <label>Provitas Padi Gogo (Ku/Ha)</label>
+      <input type="number" name="Provitas Padi Gogo (Ku/Ha)">
+      <label>Total LTT Padi (Ha)</label>
+      <input type="number" name="Total LTT Padi (Ha)">
+      <label>Total LTP Padi (Ha)</label>
+      <input type="number" name="Total LTP Padi (Ha)">
+    </div>
+
+    <div class="buttons">
+      <button type="button" onclick="nextPrev(-1)">⬅ Kembali</button>
+      <button type="button" onclick="nextPrev(1)">Selanjutnya ➡</button>
+    </div>
+
+    <div class="buttons" style="display: none;" id="submitSection">
+      <button type="button" onclick="submitForm()">✅ Kirim Data</button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+  // Kecamatan -> Desa
+  const wilayah = {
+    "Selakau": ["Bentunai", "Gayung Bersambut", "Kuala", "Pangkalan Bemban", "Parit Baru (Selakau)", "Parit Kongsi", "Semelagi Besar", "Sungai Daun", "Sungai Nyirih (Selakau)", "Sungai Rusa", "Twi Mentibar"],
+    "Selakau Timur": ["Gelik", "Seranggam", "Selakau Tua", "Buduk Sempadang"],
+    "Salatiga": ["Sungai Toman", "Serumpun", "Serunai", "Salatiga", "Parit Baru (Salatiga)"],
+    "Pemangkat": ["Gugah Sejahtera", "Harapan", "Jelutung", "Lonam", "Pemangkat Kota", "Penjajab", "Perapakan", "Sebatuan"],
+    "Semparuk": ["Seburing", "Semparuk", "Singaraya", "Sepinggan", "Sepadu (Semparuk)"],
+    "Tebas": ["Sejiram", "Batu Makjage", "Bekut", "Bukit Sigoler", "Dungun Perapakan", "Makrampai", "Maktangguk", "Maribas", "Matang Labong", "Mekar Sekuntum", "Mensere", "Pangkalan Kongsi", "Pusaka", "Seberkat", "Segarau Parit", "Segedong", "Sempalai", "Seret Ayon", "Tebas Kuala", "Tebas Sungai", "Sungai Kelambu", "Serindang", "Serumpun Buluh"],
+    "Tekarang": ["Cepala", "Matang Segarau", "Merubung", "Rambayan", "Tekarang", "Sempadian", "Sari Makmur"],
+    "Jawai": ["Bakau", "Dungun Laut", "Lambau", "Mutus Darussalam", "Parit Setia", "Pelimpaan", "Sarang Burung Kuala", "Sarang Burung Kolam", "Sarang Burung Danau", "Sarang Burung Usrat", "Sentebang", "Sungai Nilam", "Sungai Nyirih (Jawai)"],
+    "Jawai Selatan": ["Jawai Laut", "Jelu Air", "Matang Terap", "Sabaran", "Sarilaba A", "Sarilaba B", "Semperiuk A", "Semperiuk B", "Suah Api"],
+    "Sebawi": ["Sebangun", "Sebawi", "Semanjang", "Sempalai Sebedang", "Sepuk Tanjung", "Tebing Batu", "Tempatan"],
+    "Sambas": ["Dalam Kaum", "Durian", "Gapura", "Jagur", "Kartiasa", "Lorong", "Lubuk Dagang", "Lumbang", "Pasar Melayu", "Pendawan", "Saing Rambi", "Sebayan", "Semangau", "Sumber Harapan", "Sungai Rambah", "Tanjung Bugis", "Tanjung Mekar", "Tumuk Manggis"],
+    "Subah": ["Balai Gemuruh", "Sungai Sapak", "Sabung", "Madak", "Tebuah Elok", "Bukit Mulya", "Sungai Deden", "Sempurna", "Mukti Raharja", "Mensade", "Arga Pura", "Sapak Hulu Trans", "Karaban Jaya"],
+    "Sejangkung": ["Parit Raja", "Penakalan", "Perigi Landu", "Perigi Limus", "Piantus", "Sekuduk", "Semanga", "Sendoyan", "Senujuh", "Sepantai", "Setalik", "Sulung"],
+    "Sajad": ["Jirak", "Tengguli", "Mekar Jaya", "Beringin"],
+    "Galing": ["Galing", "Ratu Sepudak", "Sagu", "Sungai Palah", "Tempapan Kuala", "Tempapan Hulu", "Tri Kembang", "Sijang", "Teluk Pandan", "Tri Gadu"],
+    "Sajingan Besar": ["Kaliau", "Sebunga", "Santaban", "Sanatab", "Sungai Bening"],
+    "Teluk Keramat": ["Sungai Kumpai", "Sekura", "Tri Mandayan", "Pedada", "Lela", "Puringan", "Berlimang", "Sungai Baru", "Sengawang", "Teluk Kaseh", "Sepadu (Teluk Keramat)", "Tambatan", "Kubangga", "Sungai Serabek", "Sayang Sedayu", "Pipit Teja", "Matang Segantar", "Mulia", "Teluk Kembang", "Samustida", "Tanjung Kerucut", "Sebagu", "Mekar Sekuntum", "Kuala Pangkalan Keramat", "Sabing"],
+    "Tangaran": ["Arung Medang", "Arung Parak", "Merabuan", "Merpati", "Pancur", "Semata", "Simpang Empat", "Tangaran"],
+    "Paloh": ["Kalimantan", "Matang Danau", "Tanah Hitam", "Malek", "Nibung", "Sebubus", "Temajuk", "Mentibar​"]
+  };
+
+  // Isi dropdown Kecamatan
+  const kecSelect = document.querySelector('select[name="Kecamatan"]');
+  const desaSelect = document.querySelector('select[name="Desa"]');
+  Object.keys(wilayah).forEach(kec => {
+    const opt = document.createElement('option');
+    opt.value = kec;
+    opt.textContent = kec;
+    kecSelect.appendChild(opt);
+  });
+
+  // Update desa berdasarkan kecamatan
+  kecSelect.addEventListener('change', function () {
+    const selectedKec = this.value;
+    desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
+    if (wilayah[selectedKec]) {
+      wilayah[selectedKec].forEach(desa => {
+        const opt = document.createElement('option');
+        opt.value = desa;
+        opt.textContent = desa;
+        desaSelect.appendChild(opt);
+      });
+    }
+  });
+
+  // Multi-step navigation
+  let currentStep = 0;
+  const steps = document.querySelectorAll('.step');
+  const submitSection = document.getElementById("submitSection");
+
+  function showStep(index) {
+    steps.forEach((step, i) => {
+      step.classList.toggle('active', i === index);
+    });
+    document.querySelector('.buttons').style.display = index < steps.length - 1 ? 'flex' : 'none';
+    submitSection.style.display = index === steps.length - 1 ? 'flex' : 'none';
+  }
+
+  function nextPrev(n) {
+    const inputs = steps[currentStep].querySelectorAll("input, select");
+    for (let input of inputs) {
+      if (!input.checkValidity()) {
+        input.reportValidity();
+        return;
+      }
+    }
+    currentStep += n;
+    if (currentStep >= steps.length) currentStep = steps.length - 1;
+    if (currentStep < 0) currentStep = 0;
+    showStep(currentStep);
+  }
+
+  function submitForm() {
+    const form = document.getElementById("multiStepForm");
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    console.log("Data akan dikirim:", data);
+    alert("✅ Data berhasil dikirim (simulasi).");
+    form.reset();
+    currentStep = 0;
+    showStep(currentStep);
+  }
+
+  showStep(currentStep);
+</script>
+
+</body>
+</html>
