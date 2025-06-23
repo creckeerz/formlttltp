@@ -6,297 +6,335 @@
   <title>Form Monitoring LTT & LTP</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f0f0f0;
-      padding: 0;
-      margin: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 20px auto;
-      background: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     h2 {
       text-align: center;
-      margin-bottom: 10px;
+      color: #2c3e50;
     }
-    .step {
-      display: none;
-    }
-    .step.active {
-      display: block;
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
     }
     label {
       display: block;
       margin-top: 10px;
-      font-weight: bold;
+      font-weight: 600;
+      color: #34495e;
     }
     input, select {
       width: 100%;
       padding: 8px;
-      margin-top: 4px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #27ae60;
+    }
+    .controls {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .controls input[type="text"] {
+      padding: 8px;
+      width: 100%;
+      max-width: 250px;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
-    .buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
     }
-    button {
-      padding: 10px 20px;
-      border: none;
-      background: #3498db;
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background: #2c3e50;
       color: white;
-      border-radius: 6px;
-      cursor: pointer;
     }
-    button[disabled] {
-      background: #ccc;
+    .toast {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      background-color: #333;
+      color: white;
+      display: none;
+    }
+    .toast.show {
+      display: block;
     }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>📋 Form Monitoring LTT & LTP</h2>
-  <form id="multiStepForm">
+  <h2>Form Monitoring LTT & LTP</h2>
+  <form id="monitoringForm">
+    <label>Timestamp</label>
+    <input type="datetime-local" name="Timestamp" required />
 
-    <!-- Step 1: Identitas -->
-    <div class="step active">
-      <label>Timestamp</label>
-      <input type="datetime-local" name="Timestamp" required>
+    <label>Periode Monitoring</label>
+      <select name="Periode Monitoring" required>
+        <option value="">Pilih</option>
+        <option value="Minggu ke 1">Minggu ke 1</option>
+        <option value="Minggu ke 2">Minggu ke 2</option>
+        <option value="Minggu ke 3">Minggu ke 3</option>
+        <option value="Minggu ke 4">Minggu ke 4</option>
+        <option value="Minggu ke 5">Minggu ke 5</option>
+      </select>
 
-      <label>Periode Monitoring</label>
-  <select name="Periode Monitoring" required>
-  <option value="">Pilih Periode</option>
-  <option value="Minggu ke 1">Minggu ke 1</option>
-  <option value="Minggu ke 2">Minggu ke 2</option>
-  <option value="Minggu ke 3">Minggu ke 3</option>
-  <option value="Minggu ke 4">Minggu ke 4</option>
-  <option value="Minggu ke 5">Minggu ke 5</option>
-  </select>
-
-      <label>Nama Penyuluh</label>
-<select name="Nama Penyuluh" required>
-  <option value="">Pilih Nama Penyuluh</option>
-  <option value="A.PURNAMA PUTRA">A.PURNAMA PUTRA</option>
-  <option value="AAN PUJINURINSAN">AAN PUJINURINSAN</option>
-  <option value="ABDUL RAHMAN">ABDUL RAHMAN</option>
-  <option value="AGUS SAIFUDDIN">AGUS SAIFUDDIN</option>
-  <option value="AGUSMANTO">AGUSMANTO</option>
-  <option value="AHADI">AHADI</option>
-  <option value="ALMIZAN">ALMIZAN</option>
-  <option value="ALWAN SASRUDIN">ALWAN SASRUDIN</option>
-  <option value="ANDI">ANDI</option>
-  <option value="ANDI WIHARDI">ANDI WIHARDI</option>
-  <option value="ANDI WILLIAM">ANDI WILLIAM</option>
-  <option value="ANTO SAPUTRA">ANTO SAPUTRA</option>
-  <option value="ARAMIYA">ARAMIYA</option>
-  <option value="BUDI SETIAWAN">BUDI SETIAWAN</option>
-  <option value="DARMA IRAWAN">DARMA IRAWAN</option>
-  <option value="DARMADI">DARMADI</option>
-  <option value="DARUSSALAM">DARUSSALAM</option>
-  <option value="DINO">DINO</option>
-  <option value="DIYANTO">DIYANTO</option>
-  <option value="EDI WAHYUDI">EDI WAHYUDI</option>
-  <option value="EDWARDI">EDWARDI</option>
-  <option value="EKO SURYONO">EKO SURYONO</option>
-  <option value="ELYA KANDAU">ELYA KANDAU</option>
-  <option value="EMELDA">EMELDA</option>
-  <option value="ESPAHANI">ESPAHANI</option>
-  <option value="FITRIANI">FITRIANI</option>
-  <option value="FREEADI">FREEADI</option>
-  <option value="HENGKY KUSUMA INDRA">HENGKY KUSUMA INDRA</option>
-  <option value="HERY PRAMONO">HERY PRAMONO</option>
-  <option value="IBNU ROSIHAN">IBNU ROSIHAN</option>
-  <option value="IMANSYAH">IMANSYAH</option>
-  <option value="IRLAH">IRLAH</option>
-  <option value="IWAN APRIANTO">IWAN APRIANTO</option>
-  <option value="JAKA SUBHAN">JAKA SUBHAN</option>
-  <option value="JAWARI">JAWARI</option>
-  <option value="JAYA HARTO">JAYA HARTO</option>
-  <option value="JUANDA">JUANDA</option>
-  <option value="JUANDI">JUANDI</option>
-  <option value="JUMIATI">JUMIATI</option>
-  <option value="KAMRAN">KAMRAN</option>
-  <option value="KARNILA">KARNILA</option>
-  <option value="K.BUDIMAN">K.BUDIMAN</option>
-  <option value="LILI SINTA RUSTIKA">LILI SINTA RUSTIKA</option>
-  <option value="MARNI">MARNI</option>
-  <option value="MUHAMMAD IRHAMSYAH">MUHAMMAD IRHAMSYAH</option>
-  <option value="MUHAMMAD SAHADI">MUHAMMAD SAHADI</option>
-  <option value="MULYADI">MULYADI</option>
-  <option value="MURNI HADI">MURNI HADI</option>
-  <option value="MURNIATI">MURNIATI</option>
-  <option value="NAZRULLAH">NAZRULLAH</option>
-  <option value="NEVI ARYATI">NEVI ARYATI</option>
-  <option value="NILAWATI">NILAWATI</option>
-  <option value="NING MUSWANI">NING MUSWANI</option>
-  <option value="NOVI YANA">NOVI YANA</option>
-  <option value="NURLENA">NURLENA</option>
-  <option value="NURHAYATI">NURHAYATI</option>
-  <option value="NUR LAILA SARI">NUR LAILA SARI</option>
-  <option value="RAKHMAD BURHAN">RAKHMAD BURHAN</option>
-  <option value="RENA">RENA</option>
-  <option value="RIAN PRASOJO">RIAN PRASOJO</option>
-  <option value="RIZA NOVINA">RIZA NOVINA</option>
-  <option value="ROMI">ROMI</option>
-  <option value="RONA NURBAYA">RONA NURBAYA</option>
-  <option value="RUSDIANSYAH">RUSDIANSYAH</option>
-  <option value="SAMTIDAR">SAMTIDAR</option>
-  <option value="SAR'ANI">SAR'ANI</option>
-  <option value="SARTINI">SARTINI</option>
-  <option value="SAPTINO">SAPTINO</option>
-  <option value="STEPHANUS PUJI SETIAWAN">STEPHANUS PUJI SETIAWAN</option>
-  <option value="SUHAIMI">SUHAIMI</option>
-  <option value="SUDARTO">SUDARTO</option>
-  <option value="SUMIATI">SUMIATI</option>
-  <option value="SUPARJO">SUPARJO</option>
-  <option value="SURIYANTO">SURIYANTO</option>
-  <option value="TAUPIT">TAUPIT</option>
-  <option value="TEGUH PRIONO">TEGUH PRIONO</option>
-  <option value="TULUS PRIADI">TULUS PRIADI</option>
-  <option value="U. NASHIRUDDIN">U. NASHIRUDDIN</option>
-  <option value="VOLENDI">VOLENDI</option>
-  <option value="WAHIDAH">WAHIDAH</option>
-  <option value="WINARDI">WINARDI</option>
-  <option value="WIWIT">WIWIT</option>
-  <option value="YANTI">YANTI</option>
-  <option value="YENI DARMILA">YENI DARMILA</option>
-  <option value="YUNIA">YUNIA</option>
-  <option value="YUSNANI">YUSNANI</option>
-  <option value="ZULPIANA">ZULPIANA</option>
+    <label>Nama Penyuluh:</label>
+<select name="nama" required>
+  <option value="">-- Pilih Penyuluh --</option>
+  <option>A.PURNAMA PUTRA</option>
+  <option>AAN PUJINURINSAN</option>
+  <option>ABDUL RAHMAN</option>
+  <option>AGUS SAIFUDDIN</option>
+  <option>AGUSMANTO</option>
+  <option>AHADI</option>
+  <option>ALMIZAN</option>
+  <option>ALWAN SASRUDIN</option>
+  <option>ANDI</option>
+  <option>ANDI WIHARDI</option>
+  <option>ANDI WILLIAM</option>
+  <option>ANTO SAPUTRA</option>
+  <option>ARAMIYA</option>
+  <option>BUDI SETIAWAN</option>
+  <option>DARMA IRAWAN</option>
+  <option>DARMADI</option>
+  <option>DARUSSALAM</option>
+  <option>DINO</option>
+  <option>DIYANTO</option>
+  <option>EDI WAHYUDI</option>
+  <option>EDWARDI</option>
+  <option>EKO SURYONO</option>
+  <option>ELYA KANDAU</option>
+  <option>EMELDA</option>
+  <option>ESPAHANI</option>
+  <option>FITRIANI</option>
+  <option>FREEADI</option>
+  <option>HENGKY KUSUMA INDRA</option>
+  <option>HERY PRAMONO</option>
+  <option>IBNU ROSIHAN</option>
+  <option>IMANSYAH</option>
+  <option>IRLAH</option>
+  <option>IWAN APRIANTO</option>
+  <option>JAKA SUBHAN</option>
+  <option>JAWARI</option>
+  <option>JAYA HARTO</option>
+  <option>JUANDA</option>
+  <option>JUANDI</option>
+  <option>JUMIATI</option>
+  <option>KAMRAN</option>
+  <option>KARNILA</option>
+  <option>K.BUDIMAN</option>
+  <option>LILI SINTA RUSTIKA</option>
+  <option>MARNI</option>
+  <option>MUHAMMAD IRHAMSYAH</option>
+  <option>MUHAMMAD SAHADI</option>
+  <option>MULYADI</option>
+  <option>MURNI HADI</option>
+  <option>MURNIATI</option>
+  <option>NAZRULLAH</option>
+  <option>NEVI ARYATI</option>
+  <option>NIRLAWATI</option>
+  <option>NING MUSWANI</option>
+  <option>NOVI YANA</option>
+  <option>NURLENA</option>
+  <option>NURHAYATI</option>
+  <option>NUR LAILA SARI</option>
+  <option>RAKHMAD BURHAN</option>
+  <option>RENA</option>
+  <option>RIAN PRASOJO</option>
+  <option>RIZA NOVINA</option>
+  <option>ROMI</option>
+  <option>RONA NURBAYA</option>
+  <option>RUSDIANSYAH</option>
+  <option>SAMTIDAR</option>
+  <option>SAR'ANI</option>
+  <option>SARTINI</option>
+  <option>SAPTINO</option>
+  <option>STEPHANUS PUJI SETIAWAN</option>
+  <option>SUHAIMI</option>
+  <option>SUDARTO</option>
+  <option>SUMIATI</option>
+  <option>SUPARJO</option>
+  <option>SURIYANTO</option>
+  <option>TAUPIT</option>
+  <option>TEGUH PRIONO</option>
+  <option>TULUS PRIADI</option>
+  <option>U. NASHIRUDDIN</option>
+  <option>VOLENDI</option>
+  <option>WAHIDAH</option>
+  <option>WINARDI</option>
+  <option>WIWIT</option>
+  <option>YANTI</option>
+  <option>YENI DARMILA</option>
+  <option>YUNIA</option>
+  <option>YUSNANI</option>
+  <option>ZULPIANA</option>
 </select>
 
+    <label for="kecamatan">Kecamatan</label>
+<select name="Kecamatan" id="kecamatanSelect" required>
+  <option value="">-- Pilih Kecamatan --</option>
+</select>
 
-      <label>Kecamatan</label>
-      <select name="Kecamatan" required>
-        <option value="">Pilih Kecamatan</option>
-        <!-- Akan diisi otomatis -->
-      </select>
+<label for="desa">Desa</label>
+<select name="Desa" id="desaSelect" required>
+  <option value="">-- Pilih Desa --</option>
+</select>
 
-      <label>Desa</label>
-      <select name="Desa" required>
-        <option value="">Pilih Desa</option>
-      </select>
-    </div>
+    <!-- Semua kolom angka di bawah ini -->
+    <label>Luas Baku Sawah (LBS)</label>
+    <input type="number" name="Luas Baku Sawah (LBS)" step="0.01" />
 
-    <!-- Step 2: Data LTT -->
-    <div class="step">
-      <label>LTT Padi Reguler (Ha)</label>
-      <input type="number" name="LTT Padi Reguler (Ha)">
+    <label>Luas Tanam Tahun Sebelumnya (Ha)</label>
+    <input type="number" name="Luas Tanam Tahun Sebelumnya (Ha)" step="0.01" />
 
-      <label>LTT Padi Oplah (Ha)</label>
-      <input type="number" name="LTT Padi Oplah (Ha)">
+    <label>IP Existing</label>
+    <input type="text" name="IP Existing" />
 
-      <label>LTT Padi Irigasi Pompa (Ha)</label>
-      <input type="number" name="LTT Padi Irigasi Pompa   (Ha)">
+    <label>Luas Tambah Tanam (LTT) Padi</label>
+    <input type="number" name="Luas Tambah Tanam (LTT) Padi" step="0.01" />
 
-      <label>LTT Padi Gogo / Lahan Kering</label>
-      <input type="number" name="LTT Padi Gogo / Lahan Kering">
+    <label>LTT Padi Reguler (Ha)</label>
+    <input type="number" name="LTT Padi Reguler (Ha)" step="0.01" />
 
-      <label>LTT Jagung (Ha)</label>
-      <input type="number" name="LTT Jagung (Ha)">
-    </div>
+    <label>LTT Padi Oplah (Ha)</label>
+    <input type="number" name="LTT Padi Oplah (Ha)" step="0.01" />
 
-    <!-- Step 3: Data LTP -->
-    <div class="step">
-      <label>LTP Padi Reguler (Ha)</label>
-      <input type="number" name="LTP Padi Reguler (Ha)">
-      <label>Provitas Padi Reguler (Ku/Ha)</label>
-      <input type="number" name="Provitas Padi Reguler (Ku/Ha)">
+    <label>LTT Padi Irigasi Pompa (Ha)</label>
+    <input type="number" name="LTT Padi Irigasi Pompa (Ha)" step="0.01" />
 
-      <label>LTP Padi Oplah (Ha)</label>
-      <input type="number" name="LTP Padi Oplah (Ha)">
-      <label>Provitas Padi Oplah (Ku/Ha)</label>
-      <input type="number" name="Provitas Padi Oplah (Ku/Ha)">
+    <label>Luas Tambah Panen (LTP) Padi</label>
+    <input type="number" name="Luas Tambah Panen (LTP) Padi" step="0.01" />
 
-      <label>LTP Padi Irigasi Pompa (Ha)</label>
-      <input type="number" name="LTP Padi Irigasi Pompa (Ha)">
-      <label>Provitas Padi irigasi Pompa (Ku/Ha)</label>
-      <input type="number" name="Provitas Padi irigasi Pompa (Ku/Ha)">
+    <label>LTP Padi Reguler (Ha)</label>
+    <input type="number" name="LTP Padi Reguler (Ha)" step="0.01" />
 
-      <label>LTP Padi Gogo / Lahan Kering</label>
-      <input type="number" name="LTP Padi Gogo / Lahan Kering">
+    <label>Provitas Padi Reguler (Ku/Ha)</label>
+    <input type="number" name="Provitas Padi Reguler (Ku/Ha)" step="0.01" />
 
-      <label>LTP Jagung (Ha)</label>
-      <input type="number" name="LTP Jagung (Ha)">
-      <label>Provitas Jagung (Ku/Ha)</label>
-      <input type="number" name="Provitas Jagung (Ku/Ha)">
-    </div>
+    <label>LTP Padi Oplah (Ha)</label>
+    <input type="number" name="LTP Padi Oplah (Ha)" step="0.01" />
 
-    <!-- Step 4: Data Tambahan -->
-    <div class="step">
-      <label>Luas Baku Sawah (LBS)</label>
-      <input type="number" name="Luas Baku Sawah (LBS)">
-      <label>IP Existing</label>
-      <input type="number" name="IP Existing">
-      <label>Luas Tanam Tahun Sebelumnya (Ha)</label>
-      <input type="number" name="Luas Tanam Tahun Sebelumnya (Ha)">
-      <label>Provitas Padi Gogo (Ku/Ha)</label>
-      <input type="number" name="Provitas Padi Gogo (Ku/Ha)">
-      <label>Total LTT Padi (Ha)</label>
-      <input type="number" name="Total LTT Padi (Ha)">
-      <label>Total LTP Padi (Ha)</label>
-      <input type="number" name="Total LTP Padi (Ha)">
-    </div>
+    <label>Provitas Padi Oplah (Ku/Ha)</label>
+    <input type="number" name="Provitas Padi Oplah (Ku/Ha)" step="0.01" />
 
-    <div class="buttons">
-      <button type="button" onclick="nextPrev(-1)">⬅ Kembali</button>
-      <button type="button" onclick="nextPrev(1)">Selanjutnya ➡</button>
-    </div>
+    <label>LTP Padi Irigasi Pompa (Ha)</label>
+    <input type="number" name="LTP Padi Irigasi Pompa (Ha)" step="0.01" />
 
-    <div class="buttons" style="display: none;" id="submitSection">
-      <button type="button" onclick="submitForm()">✅ Kirim Data</button>
-    </div>
+    <label>Provitas Padi irigasi Pompa (Ku/Ha)</label>
+    <input type="number" name="Provitas Padi irigasi Pompa (Ku/Ha)" step="0.01" />
 
+    <label>Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering</label>
+    <input type="number" name="Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering" step="0.01" />
+
+    <label>LTT Padi Gogo / Lahan Kering</label>
+    <input type="number" name="LTT Padi Gogo / Lahan Kering" step="0.01" />
+
+    <label>LTP Padi Gogo / Lahan Kering</label>
+    <input type="number" name="LTP Padi Gogo / Lahan Kering" step="0.01" />
+
+    <label>Provitas Padi Gogo (Ku/Ha)</label>
+    <input type="number" name="Provitas Padi Gogo (Ku/Ha)" step="0.01" />
+
+    <label>Luas Tambah Tanam (LTT) Jagung</label>
+    <input type="number" name="Luas Tambah Tanam (LTT) Jagung" step="0.01" />
+
+    <label>LTT Jagung (Ha)</label>
+    <input type="number" name="LTT Jagung (Ha)" step="0.01" />
+
+    <label>Luas Tambah Panen (LTP) Jagung</label>
+    <input type="number" name="Luas Tambah Panen (LTP) Jagung" step="0.01" />
+
+    <label>LTP Jagung (Ha)</label>
+    <input type="number" name="LTP Jagung (Ha)" step="0.01" />
+
+    <label>Provitas Jagung (Ku/Ha)</label>
+    <input type="number" name="Provitas Jagung (Ku/Ha)" step="0.01" />
+
+    <button type="submit">Kirim Data</button>
   </form>
-</div>
+  
+  <!-- ✅ Tambahan tombol filter dan export -->
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="🔍 Cari di tabel...">
+    <div>
+      <button type="button" onclick="loadData()">🔄 Reload Data</button>
+      <button type="button" onclick="exportTableToExcel()">📥 Export Excel</button>
+    </div>
+  </div>
+
+<div class="toast" id="toast"></div>
+
+  <div class="table-wrapper">
+    <table id="historyTable">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Periode</th>
+          <th>Penyuluh</th>
+          <th>Kecamatan</th>
+          <th>Desa</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
 <script>
-  // Kecamatan -> Desa
-  const wilayah = {
-    "Selakau": ["Bentunai", "Gayung Bersambut", "Kuala", "Pangkalan Bemban", "Parit Baru (Selakau)", "Parit Kongsi", "Semelagi Besar", "Sungai Daun", "Sungai Nyirih (Selakau)", "Sungai Rusa", "Twi Mentibar"],
-    "Selakau Timur": ["Gelik", "Seranggam", "Selakau Tua", "Buduk Sempadang"],
-    "Salatiga": ["Sungai Toman", "Serumpun", "Serunai", "Salatiga", "Parit Baru (Salatiga)"],
-    "Pemangkat": ["Gugah Sejahtera", "Harapan", "Jelutung", "Lonam", "Pemangkat Kota", "Penjajab", "Perapakan", "Sebatuan"],
-    "Semparuk": ["Seburing", "Semparuk", "Singaraya", "Sepinggan", "Sepadu (Semparuk)"],
-    "Tebas": ["Sejiram", "Batu Makjage", "Bekut", "Bukit Sigoler", "Dungun Perapakan", "Makrampai", "Maktangguk", "Maribas", "Matang Labong", "Mekar Sekuntum", "Mensere", "Pangkalan Kongsi", "Pusaka", "Seberkat", "Segarau Parit", "Segedong", "Sempalai", "Seret Ayon", "Tebas Kuala", "Tebas Sungai", "Sungai Kelambu", "Serindang", "Serumpun Buluh"],
-    "Tekarang": ["Cepala", "Matang Segarau", "Merubung", "Rambayan", "Tekarang", "Sempadian", "Sari Makmur"],
-    "Jawai": ["Bakau", "Dungun Laut", "Lambau", "Mutus Darussalam", "Parit Setia", "Pelimpaan", "Sarang Burung Kuala", "Sarang Burung Kolam", "Sarang Burung Danau", "Sarang Burung Usrat", "Sentebang", "Sungai Nilam", "Sungai Nyirih (Jawai)"],
-    "Jawai Selatan": ["Jawai Laut", "Jelu Air", "Matang Terap", "Sabaran", "Sarilaba A", "Sarilaba B", "Semperiuk A", "Semperiuk B", "Suah Api"],
-    "Sebawi": ["Sebangun", "Sebawi", "Semanjang", "Sempalai Sebedang", "Sepuk Tanjung", "Tebing Batu", "Tempatan"],
-    "Sambas": ["Dalam Kaum", "Durian", "Gapura", "Jagur", "Kartiasa", "Lorong", "Lubuk Dagang", "Lumbang", "Pasar Melayu", "Pendawan", "Saing Rambi", "Sebayan", "Semangau", "Sumber Harapan", "Sungai Rambah", "Tanjung Bugis", "Tanjung Mekar", "Tumuk Manggis"],
-    "Subah": ["Balai Gemuruh", "Sungai Sapak", "Sabung", "Madak", "Tebuah Elok", "Bukit Mulya", "Sungai Deden", "Sempurna", "Mukti Raharja", "Mensade", "Arga Pura", "Sapak Hulu Trans", "Karaban Jaya"],
-    "Sejangkung": ["Parit Raja", "Penakalan", "Perigi Landu", "Perigi Limus", "Piantus", "Sekuduk", "Semanga", "Sendoyan", "Senujuh", "Sepantai", "Setalik", "Sulung"],
-    "Sajad": ["Jirak", "Tengguli", "Mekar Jaya", "Beringin"],
-    "Galing": ["Galing", "Ratu Sepudak", "Sagu", "Sungai Palah", "Tempapan Kuala", "Tempapan Hulu", "Tri Kembang", "Sijang", "Teluk Pandan", "Tri Gadu"],
-    "Sajingan Besar": ["Kaliau", "Sebunga", "Santaban", "Sanatab", "Sungai Bening"],
-    "Teluk Keramat": ["Sungai Kumpai", "Sekura", "Tri Mandayan", "Pedada", "Lela", "Puringan", "Berlimang", "Sungai Baru", "Sengawang", "Teluk Kaseh", "Sepadu (Teluk Keramat)", "Tambatan", "Kubangga", "Sungai Serabek", "Sayang Sedayu", "Pipit Teja", "Matang Segantar", "Mulia", "Teluk Kembang", "Samustida", "Tanjung Kerucut", "Sebagu", "Mekar Sekuntum", "Kuala Pangkalan Keramat", "Sabing"],
-    "Tangaran": ["Arung Medang", "Arung Parak", "Merabuan", "Merpati", "Pancur", "Semata", "Simpang Empat", "Tangaran"],
-    "Paloh": ["Kalimantan", "Matang Danau", "Tanah Hitam", "Malek", "Nibung", "Sebubus", "Temajuk", "Mentibar​"]
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbwC2ew1-pWxF2SgNNxpQSKLxbol_P5UIxt1YEVmMkqxI7hwDY6qD46Wxysjsx376AQJ5g/exec';
+  const form = document.getElementById('monitoringForm');
+  const toast = document.getElementById('toast');
+  const tableBody = document.querySelector('#historyTable tbody');
+  const kecamatanSelect = document.getElementById('kecamatanSelect');
+  const desaSelect = document.getElementById('desaSelect');
+
+  const desaByKecamatan = {
+    // ... data desa dan kecamatan Anda ...
   };
 
-  // Isi dropdown Kecamatan
-  const kecSelect = document.querySelector('select[name="Kecamatan"]');
-  const desaSelect = document.querySelector('select[name="Desa"]');
-  Object.keys(wilayah).forEach(kec => {
+  Object.keys(desaByKecamatan).forEach(kec => {
     const opt = document.createElement('option');
     opt.value = kec;
     opt.textContent = kec;
-    kecSelect.appendChild(opt);
+    kecamatanSelect.appendChild(opt);
   });
 
-  // Update desa berdasarkan kecamatan
-  kecSelect.addEventListener('change', function () {
-    const selectedKec = this.value;
-    desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-    if (wilayah[selectedKec]) {
-      wilayah[selectedKec].forEach(desa => {
+  kecamatanSelect.addEventListener('change', () => {
+    const selected = kecamatanSelect.value;
+    desaSelect.innerHTML = '<option value="">-- Pilih Desa --</option>';
+    if (desaByKecamatan[selected]) {
+      desaByKecamatan[selected].forEach(desa => {
         const opt = document.createElement('option');
         opt.value = desa;
         opt.textContent = desa;
@@ -305,66 +343,65 @@
     }
   });
 
-  // Multi-step navigation
-  let currentStep = 0;
-  const steps = document.querySelectorAll('.step');
-  const submitSection = document.getElementById("submitSection");
-
-  function showStep(index) {
-    steps.forEach((step, i) => {
-      step.classList.toggle('active', i === index);
-    });
-    document.querySelector('.buttons').style.display = index < steps.length - 1 ? 'flex' : 'none';
-    submitSection.style.display = index === steps.length - 1 ? 'flex' : 'none';
+  function showToast(msg, success = true) {
+    toast.textContent = msg;
+    toast.className = `toast show ${success ? 'success' : 'error'}`;
+    setTimeout(() => toast.className = 'toast', 3000);
   }
 
-  function nextPrev(n) {
-    const inputs = steps[currentStep].querySelectorAll("input, select");
-    for (let input of inputs) {
-      if (!input.checkValidity()) {
-        input.reportValidity();
-        return;
-      }
-    }
-    currentStep += n;
-    if (currentStep >= steps.length) currentStep = steps.length - 1;
-    if (currentStep < 0) currentStep = 0;
-    showStep(currentStep);
-  }
-
-  function submitForm() {
-  const form = document.getElementById("multiStepForm");
-  const formData = new FormData(form);
-
-  // Sudah ditambahkan dengan benar
-  formData.append("action", "submit");
-
-  fetch('https://script.google.com/macros/s/AKfycbyCn2ia9Bj2kzBDa1cXxS8y7tGtQ760iKCralb-I1FZAU3wgFp4ixG929ZZ_cgSPanikw/exec', {
-  method: "POST",
-  body: formData,
-  headers: {
-    "Accept": "application/json"
-  }
-})
-
-  .then(res => res.json())
-  .then(res => {
-    if (res.status === "success") {
-      alert(res.message);
-      form.reset();
-      currentStep = 0;
-      showStep(currentStep);
-    } else {
-      alert("❌ Gagal: " + res.message);
-    }
-  })
-  .catch(err => {
-    alert("❌ Error jaringan: " + err);
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    fetch(scriptURL, { method: 'POST', body: formData })
+      .then(res => res.text())
+      .then(() => {
+        showToast("✅ Data berhasil dikirim");
+        form.reset();
+        desaSelect.innerHTML = '<option value="">-- Pilih Desa --</option>';
+        loadData();
+      })
+      .catch(() => showToast("❌ Gagal mengirim data", false));
   });
-}
 
-  showStep(currentStep);
+  function loadData() {
+    fetch(scriptURL + '?read=1')
+      .then(res => res.json())
+      .then(data => {
+        tableBody.innerHTML = '';
+        data.slice(1).reverse().forEach(row => {
+          const tr = document.createElement('tr');
+          row.slice(0, 5).forEach(cell => {
+            const td = document.createElement('td');
+            td.textContent = cell;
+            tr.appendChild(td);
+          });
+          tableBody.appendChild(tr);
+        });
+      });
+  }
+
+  // 🔍 Filter tabel berdasarkan input pencarian
+  document.getElementById("searchInput").addEventListener("input", function () {
+    const keyword = this.value.toLowerCase();
+    const rows = document.querySelectorAll("#historyTable tbody tr");
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      row.style.display = text.includes(keyword) ? "" : "none";
+    });
+  });
+
+  // 📥 Export tabel ke Excel
+  function exportTableToExcel(filename = 'data_ltt_ltp.xls') {
+    const table = document.getElementById("historyTable");
+    const html = table.outerHTML;
+    const url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+  }
+
+  loadData();
 </script>
-
 </body>
 </html>
