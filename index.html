@@ -4,183 +4,138 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Form Monitoring LTT & LTP</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/css/smart_wizard_all.min.css">
   <style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    background: #f4f6f9;
-    padding: 20px;
-    margin: 0;
-  }
-
-  h2 {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 20px;
-  }
-
-  form {
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    margin: 0 auto 30px auto;
-    max-width: 768px;
-    width: 100%;
-  }
-
-  label {
-    display: block;
-    margin-top: 14px;
-    font-weight: 600;
-    color: #34495e;
-  }
-
-  input, select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 6px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 15px;
-    box-sizing: border-box;
-  }
-
-  button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    background: #2ecc71;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-
-  button:hover {
-    background: #27ae60;
-  }
-
-  .controls {
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    max-width: 768px;
-    margin-inline: auto;
-  }
-
-  .controls input[type="text"] {
-    padding: 8px;
-    width: 100%;
-    max-width: 250px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-
-  .controls button {
-    font-size: 14px;
-    padding: 8px 16px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 0 auto 50px auto;
-    max-width: 768px;
-  }
-
-  th, td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-    font-size: 14px;
-  }
-
-  th {
-    background: #2c3e50;
-    color: white;
-  }
-
-  .table-wrapper {
-    max-width: 100%;
-    overflow-x: auto;
-  }
-
-  .toast {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    background-color: #333;
-    color: white;
-    display: none;
-    z-index: 1000;
-  }
-
-  .toast.show {
-    display: block;
-  }
-
-  @media screen and (max-width: 600px) {
-    form, .controls {
-      padding: 15px;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      padding: 20px;
+      margin: 0;
     }
 
-    label {
-      margin-top: 12px;
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
     }
 
-    input, select {
-      font-size: 14px;
-      padding: 9px;
+    .sw-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      max-width: 768px;
+      margin: 0 auto 30px auto;
+    }
+
+    .sw-container label {
+      font-weight: 600;
+      color: #34495e;
+      display: block;
+      margin-top: 14px;
+    }
+
+    .sw-container input, .sw-container select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    button.sw-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button.sw-btn:hover {
+      background: #27ae60;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 0 auto 50px auto;
+      max-width: 768px;
     }
 
     th, td {
-      font-size: 13px;
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
     }
 
-    button {
-      width: 100%;
+    th {
+      background: #2c3e50;
+      color: white;
     }
 
     .controls {
-      flex-direction: column;
-      align-items: stretch;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: 768px;
+      margin-inline: auto;
+    }
+
+    .controls input[type="text"] {
+      padding: 8px;
+      width: 100%;
+      max-width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
 
     .controls button {
-      width: 100%;
+      font-size: 14px;
+      padding: 8px 16px;
     }
-  }
-</style>
-
+  </style>
 </head>
 <body>
-
   <h2>Form Monitoring LTT & LTP</h2>
-  <form id="monitoringForm">
-    <label>Timestamp</label>
-    <input type="datetime-local" name="Timestamp" required />
+  <div class="sw-container">
+    <form id="monitoringForm">
+      <div id="smartwizard">
+        <ul class="nav">
+          <li><a class="nav-link" href="#step-1">Step 1<br/><small>Info Dasar</small></a></li>
+          <li><a class="nav-link" href="#step-2">Step 2<br/><small>Data LTT</small></a></li>
+          <li><a class="nav-link" href="#step-3">Step 3<br/><small>Data LTP</small></a></li>
+          <li><a class="nav-link" href="#step-4">Step 4<br/><small>Jagung & Submit</small></a></li>
+        </ul>
 
-  
-    <label>Periode Monitoring</label>
-    <select name="Periode Monitoring" required>
-      <option value="">Pilih</option>
-      <option value="Minggu ke 1">Minggu ke 1</option>
-      <option value="Minggu ke 2">Minggu ke 2</option>
-      <option value="Minggu ke 3">Minggu ke 3</option>
-      <option value="Minggu ke 4">Minggu ke 4</option>
-      <option value="Minggu ke 5">Minggu ke 5</option>
-    </select>
 
-    <label>Nama Penyuluh:</label>
+          
+         <div class="tab-content">
+          <!-- STEP 1 -->
+          <div id="step-1" class="tab-pane" role="tabpanel">
+            <label>Timestamp</label>
+            <input type="datetime-local" name="Timestamp" required />
+            <label>Periode Monitoring</label>
+            <select name="Periode Monitoring" required>
+              <option value="">Pilih</option>
+              <option value="Minggu ke 1">Minggu ke 1</option>
+              <option value="Minggu ke 2">Minggu ke 2</option>
+              <option value="Minggu ke 3">Minggu ke 3</option>
+              <option value="Minggu ke 4">Minggu ke 4</option>
+              <option value="Minggu ke 5">Minggu ke 5</option>
+            </select>
+
+            <label>Nama Penyuluh:</label>
 <select name="nama" required>
   <option value="">-- Pilih Penyuluh --</option>
   <option>A.PURNAMA PUTRA</option>
@@ -272,87 +227,74 @@
   <option>ZULPIANA</option>
 </select>
 
-    <label for="kecamatan">Kecamatan</label>
-<select name="Kecamatan" id="kecamatanSelect" required>
-  <option value="">-- Pilih Kecamatan --</option>
-</select>
+            <label>Kecamatan</label>
+            <select name="Kecamatan" id="kecamatanSelect" required></select>
+            <label>Desa</label>
+            <select name="Desa" id="desaSelect" required></select>
+          </div>
 
-<label for="desa">Desa</label>
-<select name="Desa" id="desaSelect" required>
-  <option value="">-- Pilih Desa --</option>
-</select>
+          <!-- STEP 2 -->
+          <div id="step-2" class="tab-pane" role="tabpanel">
+            <label>Luas Baku Sawah (LBS)</label>
+            <input type="number" name="Luas Baku Sawah (LBS)" step="0.01" />
+            <label>Luas Tanam Tahun Sebelumnya (Ha)</label>
+            <input type="number" name="Luas Tanam Tahun Sebelumnya (Ha)" step="0.01" />
+            <label>IP Existing</label>
+            <input type="text" name="IP Existing" />
+            <label>LTT Padi Reguler (Ha)</label>
+            <input type="number" name="LTT Padi Reguler (Ha)" step="0.01" />
+            <label>LTT Padi Oplah (Ha)</label>
+            <input type="number" name="LTT Padi Oplah (Ha)" step="0.01" />
+            <label>LTT Padi Irigasi Pompa (Ha)</label>
+            <input type="number" name="LTT Padi Irigasi Pompa (Ha)" step="0.01" />
+            <label>Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering</label>
+            <input type="number" name="Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering" step="0.01" />
+            <label>LTT Padi Gogo / Lahan Kering</label>
+            <input type="number" name="LTT Padi Gogo / Lahan Kering" step="0.01" />
+          </div>
 
-    <!-- Semua kolom angka di bawah ini -->
-    <label>Luas Baku Sawah (LBS)</label>
-    <input type="number" name="Luas Baku Sawah (LBS)" step="0.01" />
+          <!-- STEP 3 -->
+          <div id="step-3" class="tab-pane" role="tabpanel">
+            <label>Luas Tambah Panen (LTP) Padi</label>
+            <input type="number" name="Luas Tambah Panen (LTP) Padi" step="0.01" />
+            <label>LTP Padi Reguler (Ha)</label>
+            <input type="number" name="LTP Padi Reguler (Ha)" step="0.01" />
+            <label>Provitas Padi Reguler (Ku/Ha)</label>
+            <input type="number" name="Provitas Padi Reguler (Ku/Ha)" step="0.01" />
+            <label>LTP Padi Oplah (Ha)</label>
+            <input type="number" name="LTP Padi Oplah (Ha)" step="0.01" />
+            <label>Provitas Padi Oplah (Ku/Ha)</label>
+            <input type="number" name="Provitas Padi Oplah (Ku/Ha)" step="0.01" />
+            <label>LTP Padi Irigasi Pompa (Ha)</label>
+            <input type="number" name="LTP Padi Irigasi Pompa (Ha)" step="0.01" />
+            <label>Provitas Padi irigasi Pompa (Ku/Ha)</label>
+            <input type="number" name="Provitas Padi irigasi Pompa (Ku/Ha)" step="0.01" />
+            <label>LTP Padi Gogo / Lahan Kering</label>
+            <input type="number" name="LTP Padi Gogo / Lahan Kering" step="0.01" />
+            <label>Provitas Padi Gogo (Ku/Ha)</label>
+            <input type="number" name="Provitas Padi Gogo (Ku/Ha)" step="0.01" />
+          </div>
 
-    <label>Luas Tanam Tahun Sebelumnya (Ha)</label>
-    <input type="number" name="Luas Tanam Tahun Sebelumnya (Ha)" step="0.01" />
+          <!-- STEP 4 -->
+          <div id="step-4" class="tab-pane" role="tabpanel">
+            <label>Luas Tambah Tanam (LTT) Jagung</label>
+            <input type="number" name="Luas Tambah Tanam (LTT) Jagung" step="0.01" />
+            <label>LTT Jagung (Ha)</label>
+            <input type="number" name="LTT Jagung (Ha)" step="0.01" />
+            <label>Luas Tambah Panen (LTP) Jagung</label>
+            <input type="number" name="Luas Tambah Panen (LTP) Jagung" step="0.01" />
+            <label>LTP Jagung (Ha)</label>
+            <input type="number" name="LTP Jagung (Ha)" step="0.01" />
+            <label>Provitas Jagung (Ku/Ha)</label>
+            <input type="number" name="Provitas Jagung (Ku/Ha)" step="0.01" />
+            <button type="submit">✅ Kirim Data</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
 
-    <label>IP Existing</label>
-    <input type="text" name="IP Existing" />
-
-    <label>LTT Padi Reguler (Ha)</label>
-    <input type="number" name="LTT Padi Reguler (Ha)" step="0.01" />
-
-    <label>LTT Padi Oplah (Ha)</label>
-    <input type="number" name="LTT Padi Oplah (Ha)" step="0.01" />
-
-    <label>LTT Padi Irigasi Pompa (Ha)</label>
-    <input type="number" name="LTT Padi Irigasi Pompa (Ha)" step="0.01" />
-
-    <label>Luas Tambah Panen (LTP) Padi</label>
-    <input type="number" name="Luas Tambah Panen (LTP) Padi" step="0.01" />
-
-    <label>LTP Padi Reguler (Ha)</label>
-    <input type="number" name="LTP Padi Reguler (Ha)" step="0.01" />
-
-    <label>Provitas Padi Reguler (Ku/Ha)</label>
-    <input type="number" name="Provitas Padi Reguler (Ku/Ha)" step="0.01" />
-
-    <label>LTP Padi Oplah (Ha)</label>
-    <input type="number" name="LTP Padi Oplah (Ha)" step="0.01" />
-
-    <label>Provitas Padi Oplah (Ku/Ha)</label>
-    <input type="number" name="Provitas Padi Oplah (Ku/Ha)" step="0.01" />
-
-    <label>LTP Padi Irigasi Pompa (Ha)</label>
-    <input type="number" name="LTP Padi Irigasi Pompa (Ha)" step="0.01" />
-
-    <label>Provitas Padi irigasi Pompa (Ku/Ha)</label>
-    <input type="number" name="Provitas Padi irigasi Pompa (Ku/Ha)" step="0.01" />
-
-    <label>Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering</label>
-    <input type="number" name="Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering" step="0.01" />
-
-    <label>LTT Padi Gogo / Lahan Kering</label>
-    <input type="number" name="LTT Padi Gogo / Lahan Kering" step="0.01" />
-
-    <label>LTP Padi Gogo / Lahan Kering</label>
-    <input type="number" name="LTP Padi Gogo / Lahan Kering" step="0.01" />
-
-    <label>Provitas Padi Gogo (Ku/Ha)</label>
-    <input type="number" name="Provitas Padi Gogo (Ku/Ha)" step="0.01" />
-
-    <label>Luas Tambah Tanam (LTT) Jagung</label>
-    <input type="number" name="Luas Tambah Tanam (LTT) Jagung" step="0.01" />
-
-    <label>LTT Jagung (Ha)</label>
-    <input type="number" name="LTT Jagung (Ha)" step="0.01" />
-
-    <label>Luas Tambah Panen (LTP) Jagung</label>
-    <input type="number" name="Luas Tambah Panen (LTP) Jagung" step="0.01" />
-
-    <label>LTP Jagung (Ha)</label>
-    <input type="number" name="LTP Jagung (Ha)" step="0.01" />
-
-    <label>Provitas Jagung (Ku/Ha)</label>
-    <input type="number" name="Provitas Jagung (Ku/Ha)" step="0.01" />
-
-    <button type="submit">Kirim Data</button>
-  </form>
-  
-  <!-- ✅ Tambahan tombol filter dan export -->
+  <!-- Table & Control -->
   <div class="controls">
     <input type="text" id="searchInput" placeholder="🔍 Cari di tabel...">
     <div>
@@ -361,60 +303,63 @@
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
-
   <div class="table-wrapper">
     <table id="historyTable">
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Periode</th>
-          <th>Penyuluh</th>
-          <th>Kecamatan</th>
-          <th>Desa</th>
-        </tr>
-      </thead>
+      <thead id="tableHead"><tr></tr></thead>
       <tbody></tbody>
     </table>
     <div class="pagination" id="pagination"></div>
   </div>
 
-<script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
+  <script>
   const scriptURL = 'https://script.google.com/macros/s/AKfycbzj1lGwb3z-qEz-gSsRR2ZkU3rAXDCtYWtIAy9jEAG-_HLgGmOrOY93FwUTRG9Mwbb7/exec';
-  const form = document.getElementById('monitoringForm');
-  const toast = document.getElementById('toast');
-  const tableBody = document.querySelector('#historyTable tbody');
-  const pagination = document.getElementById('pagination');
-  let allData = [], perPage = 5, currentPage = 1;
+  const perPage = 5;
+  let allData = [], originalData = [], currentPage = 1;
 
-  function showToast(msg, success = true) {
-    toast.textContent = msg;
-    toast.className = `toast show ${success ? 'success' : 'error'}`;
-    setTimeout(() => toast.className = 'toast', 3000);
-  }
+  const defaultHeaders = [
+    "Timestamp", "Periode Monitoring", "Nama Penyuluh", "Kecamatan", "Desa",
+    "Luas Baku Sawah (LBS)", "Luas Tanam Tahun Sebelumnya (Ha)", "IP Existing",
+    "LTT Padi Reguler (Ha)", "LTT Padi Oplah (Ha)", "LTT Padi Irigasi Pompa (Ha)",
+    "Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering", "LTT Padi Gogo / Lahan Kering",
+    "Luas Tambah Panen (LTP) Padi", "LTP Padi Reguler (Ha)", "Provitas Padi Reguler (Ku/Ha)",
+    "LTP Padi Oplah (Ha)", "Provitas Padi Oplah (Ku/Ha)", "LTP Padi Irigasi Pompa (Ha)",
+    "Provitas Padi irigasi Pompa (Ku/Ha)", "LTP Padi Gogo / Lahan Kering", "Provitas Padi Gogo (Ku/Ha)",
+    "Luas Tambah Tanam (LTT) Jagung", "LTT Jagung (Ha)", "Luas Tambah Panen (LTP) Jagung",
+    "LTP Jagung (Ha)", "Provitas Jagung (Ku/Ha)"
+  ];
+
+  const loadingEl = document.getElementById("loading");
 
   function renderTablePage(page) {
+    const tableHead = document.getElementById("tableHead");
+    const tableBody = document.querySelector("#historyTable tbody");
     currentPage = page;
     tableBody.innerHTML = '';
+    tableHead.innerHTML = '<tr>' + defaultHeaders.map(h => `<th>${h}</th>`).join('') + '</tr>';
+
     const start = (page - 1) * perPage;
     const end = start + perPage;
     const pageData = allData.slice(start, end);
+
     pageData.forEach(row => {
-      const tr = document.createElement('tr');
-      row.slice(0, 5).forEach(cell => {
-        const td = document.createElement('td');
+      const tr = document.createElement("tr");
+      row.forEach(cell => {
+        const td = document.createElement("td");
         td.textContent = cell;
         tr.appendChild(td);
       });
       tableBody.appendChild(tr);
     });
 
+    const pagination = document.getElementById("pagination");
     pagination.innerHTML = '';
     const totalPages = Math.ceil(allData.length / perPage);
     for (let i = 1; i <= totalPages; i++) {
-      const btn = document.createElement('button');
+      const btn = document.createElement("button");
       btn.textContent = i;
-      if (i === page) btn.classList.add('active');
+      if (i === page) btn.classList.add("active");
       btn.onclick = () => renderTablePage(i);
       pagination.appendChild(btn);
     }
@@ -424,17 +369,11 @@
     fetch(scriptURL + '?read=1')
       .then(res => res.json())
       .then(data => {
-        allData = data.slice(1).reverse();
+        originalData = data.slice(1).reverse();
+        allData = [...originalData];
         renderTablePage(1);
       });
   }
-
-  document.getElementById("searchInput").addEventListener("input", function () {
-    const keyword = this.value.toLowerCase();
-    const filtered = allData.filter(row => row.slice(0, 5).join(' ').toLowerCase().includes(keyword));
-    allData = filtered;
-    renderTablePage(1);
-  });
 
   function exportTableToExcel(filename = 'data_ltt_ltp.xls') {
     const table = document.getElementById("historyTable");
@@ -446,7 +385,64 @@
     a.click();
   }
 
-  form.addEventListener('submit', e => {
+  document.getElementById("monitoringForm").addEventListener('submit', e => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  loadingEl.style.display = "block";
+
+  // Format Timestamp agar jadi MM/DD/YYYY HH:mm:ss
+  const rawTimestamp = formData.get("Timestamp");
+  if (rawTimestamp) {
+    const dt = new Date(rawTimestamp);
+    const formattedTimestamp = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:${String(dt.getSeconds()).padStart(2, '0')}`;
+    formData.set("Timestamp", formattedTimestamp);
+  }
+
+  fetch(scriptURL, { method: 'POST', body: formData })
+    .then(res => res.text())
+    .then(() => {
+      alert("✅ Data berhasil dikirim");
+      e.target.reset();
+      loadData();
+      setTimeout(() => {
+        loadingEl.style.display = "none";
+        document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
+      }, 500);
+    })
+    .catch(() => {
+      loadingEl.style.display = "none";
+      alert("❌ Gagal mengirim data");
+    });
+});
+
+
+  // Search filter
+  document.getElementById("searchInput").addEventListener("input", function () {
+    const keyword = this.value.toLowerCase();
+    allData = originalData.filter(row => row.join(' ').toLowerCase().includes(keyword));
+    renderTablePage(1);
+  });
+
+  // Init Smart Wizard
+  $(document).ready(function () {
+    $('#smartwizard').smartWizard({
+      theme: 'dots',
+      autoAdjustHeight: true,
+      toolbarSettings: {
+        toolbarPosition: 'bottom',
+        showNextButton: true,
+        showPreviousButton: true
+      }
+    });
+  });
+
+  // Initial load
+  loadData();
+</script>
+
+    <script>
+
+    form.addEventListener('submit', e => {
     e.preventDefault();
     const formData = new FormData(form);
     fetch(scriptURL, { method: 'POST', body: formData })
@@ -460,9 +456,9 @@
   });
 
   loadData();
-</script>
-
-<script>
+  </script>
+  
+  <script>
     const desaPerKecamatan = {
       "Selakau": ["Bentunai", "Gayung Bersambut", "Kuala", "Pangkalan Bemban", "Parit Baru (Selakau)", "Parit Kongsi", "Semelagi Besar", "Sungai Daun", "Sungai Nyirih (Selakau)", "Sungai Rusa", "Twi Mentibar"],
       "Selakau Timur": ["Gelik", "Seranggam", "Selakau Tua", "Buduk Sempadang"],
@@ -484,30 +480,29 @@
       "Tangaran": ["Arung Medang", "Arung Parak", "Merabuan", "Merpati", "Pancur", "Semata", "Simpang Empat", "Tangaran"],
       "Paloh": ["Kalimantan", "Matang Danau", "Tanah Hitam", "Malek", "Nibung", "Sebubus", "Temajuk", "Mentibar"]
     };
-
-    const kecamatanSelect = document.getElementById("kecamatanSelect");
+  
+     const kecamatanSelect = document.getElementById("kecamatanSelect");
     const desaSelect = document.getElementById("desaSelect");
 
-    for (const kecamatan in desaPerKecamatan) {
-      const option = document.createElement("option");
-      option.value = kecamatan;
-      option.textContent = `Kec. ${kecamatan}`;
-      kecamatanSelect.appendChild(option);
-    }
-
-    kecamatanSelect.addEventListener("change", () => {
-      desaSelect.innerHTML = '<option value="">-- Pilih Desa --</option>';
-      const selected = kecamatanSelect.value;
-      if (desaPerKecamatan[selected]) {
-        desaPerKecamatan[selected].forEach(desa => {
-          const option = document.createElement("option");
-          option.value = desa;
-          option.textContent = desa;
-          desaSelect.appendChild(option);
-        });
+    window.addEventListener("DOMContentLoaded", () => {
+      for (let kecamatan in desaPerKecamatan) {
+        const option = document.createElement("option");
+        option.value = kecamatan;
+        option.textContent = kecamatan;
+        kecamatanSelect.appendChild(option);
       }
     });
-  </script>
 
+    kecamatanSelect.addEventListener("change", function () {
+      const desaList = desaPerKecamatan[this.value] || [];
+      desaSelect.innerHTML = `<option value="">-- Pilih Desa --</option>`;
+      desaList.forEach(desa => {
+        const option = document.createElement("option");
+        option.value = desa;
+        option.textContent = desa;
+        desaSelect.appendChild(option);
+      });
+    });
+  </script>
 </body>
 </html>
