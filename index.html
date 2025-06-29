@@ -464,5 +464,53 @@
 
   loadData();
 </script>
+
+<script>
+    const desaPerKecamatan = {
+      "Selakau": ["Bentunai", "Gayung Bersambut", "Kuala", "Pangkalan Bemban", "Parit Baru (Selakau)", "Parit Kongsi", "Semelagi Besar", "Sungai Daun", "Sungai Nyirih (Selakau)", "Sungai Rusa", "Twi Mentibar"],
+      "Selakau Timur": ["Gelik", "Seranggam", "Selakau Tua", "Buduk Sempadang"],
+      "Salatiga": ["Sungai Toman", "Serumpun", "Serunai", "Salatiga", "Parit Baru (Salatiga)"],
+      "Pemangkat": ["Gugah Sejahtera", "Harapan", "Jelutung", "Lonam", "Pemangkat Kota", "Penjajab", "Perapakan", "Sebatuan"],
+      "Semparuk": ["Seburing", "Semparuk", "Singaraya", "Sepinggan", "Sepadu (Semparuk)"],
+      "Tebas": ["Sejiram", "Batu Makjage", "Bekut", "Bukit Sigoler", "Dungun Perapakan", "Makrampai", "Maktangguk", "Maribas", "Matang Labong", "Mekar Sekuntum", "Mensere", "Pangkalan Kongsi", "Pusaka", "Seberkat", "Segarau Parit", "Segedong", "Sempalai", "Seret Ayon", "Tebas Kuala", "Tebas Sungai", "Sungai Kelambu", "Serindang", "Serumpun Buluh"],
+      "Tekarang": ["Cepala", "Matang Segarau", "Merubung", "Rambayan", "Tekarang", "Sempadian", "Sari Makmur"],
+      "Jawai": ["Bakau", "Dungun Laut", "Lambau", "Mutus Darussalam", "Parit Setia", "Pelimpaan", "Sarang Burung Kuala", "Sarang Burung Kolam", "Sarang Burung Danau", "Sarang Burung Usrat", "Sentebang", "Sungai Nilam", "Sungai Nyirih (Jawai)"],
+      "Jawai Selatan": ["Jawai Laut", "Jelu Air", "Matang Terap", "Sabaran", "Sarilaba A", "Sarilaba B", "Semperiuk A", "Semperiuk B", "Suah Api"],
+      "Sebawi": ["Sebangun", "Sebawi", "Semanjang", "Sempalai Sebedang", "Sepuk Tanjung", "Tebing Batu", "Tempatan"],
+      "Sambas": ["Dalam Kaum", "Durian", "Gapura", "Jagur", "Kartiasa", "Lorong", "Lubuk Dagang", "Lumbang", "Pasar Melayu", "Pendawan", "Saing Rambi", "Sebayan", "Semangau", "Sumber Harapan", "Sungai Rambah", "Tanjung Bugis", "Tanjung Mekar", "Tumuk Manggis"],
+      "Subah": ["Balai Gemuruh", "Sungai Sapak", "Sabung", "Madak", "Tebuah Elok", "Bukit Mulya", "Sungai Deden", "Sempurna", "Mukti Raharja", "Mensade", "Arga Pura", "Sapak Hulu Trans", "Karaban Jaya"],
+      "Sejangkung": ["Parit Raja", "Penakalan", "Perigi Landu", "Perigi Limus", "Piantus", "Sekuduk", "Semanga", "Sendoyan", "Senujuh", "Sepantai", "Setalik", "Sulung"],
+      "Sajad": ["Jirak", "Tengguli", "Mekar Jaya", "Beringin"],
+      "Galing": ["Galing", "Ratu Sepudak", "Sagu", "Sungai Palah", "Tempapan Kuala", "Tempapan Hulu", "Tri Kembang", "Sijang", "Teluk Pandan", "Tri Gadu"],
+      "Sajingan Besar": ["Kaliau", "Sebunga", "Santaban", "Sanatab", "Sungai Bening"],
+      "Teluk Keramat": ["Sungai Kumpai", "Sekura", "Tri Mandayan", "Pedada", "Lela", "Puringan", "Berlimang", "Sungai Baru", "Sengawang", "Teluk Kaseh", "Sepadu (Teluk Keramat)", "Tambatan", "Kubangga", "Sungai Serabek", "Sayang Sedayu", "Pipit Teja", "Matang Segantar", "Mulia", "Teluk Kembang", "Samustida", "Tanjung Kerucut", "Sebagu", "Mekar Sekuntum", "Kuala Pangkalan Keramat", "Sabing"],
+      "Tangaran": ["Arung Medang", "Arung Parak", "Merabuan", "Merpati", "Pancur", "Semata", "Simpang Empat", "Tangaran"],
+      "Paloh": ["Kalimantan", "Matang Danau", "Tanah Hitam", "Malek", "Nibung", "Sebubus", "Temajuk", "Mentibar"]
+    };
+
+    const kecamatanSelect = document.getElementById("kecamatanSelect");
+    const desaSelect = document.getElementById("desaSelect");
+
+    for (const kecamatan in desaPerKecamatan) {
+      const option = document.createElement("option");
+      option.value = kecamatan;
+      option.textContent = `Kec. ${kecamatan}`;
+      kecamatanSelect.appendChild(option);
+    }
+
+    kecamatanSelect.addEventListener("change", () => {
+      desaSelect.innerHTML = '<option value="">-- Pilih Desa --</option>';
+      const selected = kecamatanSelect.value;
+      if (desaPerKecamatan[selected]) {
+        desaPerKecamatan[selected].forEach(desa => {
+          const option = document.createElement("option");
+          option.value = desa;
+          option.textContent = desa;
+          desaSelect.appendChild(option);
+        });
+      }
+    });
+  </script>
+
 </body>
 </html>
