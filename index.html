@@ -386,32 +386,43 @@
   }
 
   document.getElementById("monitoringForm").addEventListener('submit', e => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
+  e.preventDefault();
+  const form = e.target;
+  const submitButton = form.querySelector("button[type='submit']");
+  const formData = new FormData(form);
 
-    // Format timestamp
-    const rawTimestamp = formData.get("Timestamp");
-    if (rawTimestamp) {
-      const dt = new Date(rawTimestamp);
-      const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}:00`;
-      formData.set("Timestamp", formatted);
-    }
+  // Format timestamp
+  const rawTimestamp = formData.get("Timestamp");
+  if (rawTimestamp) {
+    const dt = new Date(rawTimestamp);
+    const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:00`;
+    formData.set("Timestamp", formatted);
+  }
 
-    fetch(scriptURL, {
-      method: 'POST',
-      body: formData
+  // Tampilkan loading dan disable tombol
+  showLoading();
+  submitButton.disabled = true;
+
+  fetch(scriptURL, {
+    method: 'POST',
+    body: formData
+  })
+    .then(res => res.text())
+    .then(() => {
+      showToast("✅ Data berhasil dikirim", true);
+      form.reset();
+      loadData();
+      document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
     })
-      .then(res => res.text())
-      .then(() => {
-        alert("✅ Data berhasil dikirim");
-        e.target.reset();
-        loadData();
-        document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
-      })
-      .catch(() => {
-        alert("❌ Gagal mengirim data");
-      });
-  });
+    .catch(() => {
+      showToast("❌ Gagal mengirim data", false);
+    })
+    .finally(() => {
+      hideLoading();
+      submitButton.disabled = false;
+    });
+});
+
 
 
   // Search filter
@@ -440,6 +451,22 @@
 
     <script>
 
+function showLoading() {
+  document.getElementById("loadingOverlay").style.display = "flex";
+}
+function hideLoading() {
+  document.getElementById("loadingOverlay").style.display = "none";
+}
+function showToast(message, success = true) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.background = success ? "#2ecc71" : "#e74c3c";
+  toast.style.display = "block";
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 3000);
+}
+      
     form.addEventListener('submit', e => {
     e.preventDefault();
     const formData = new FormData(form);
@@ -502,5 +529,38 @@
       });
     });
   </script>
+
+
+  
+  <div id="loadingOverlay" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 20px;
+">
+  ⏳ Mengirim data...
+</div>
+
+<div id="toast" style="
+  display: none;
+  position: fixed;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  background: #2ecc71;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  z-index: 10000;
+">
+  ✅ Data berhasil dikirim
+</div>
+
 </body>
 </html>
