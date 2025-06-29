@@ -385,35 +385,36 @@
     a.click();
   }
 
+  <script>
   document.getElementById("monitoringForm").addEventListener('submit', e => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  loadingEl.style.display = "block";
+    e.preventDefault();
+    const formData = new FormData(e.target);
 
-  // Format Timestamp agar jadi MM/DD/YYYY HH:mm:ss
-  const rawTimestamp = formData.get("Timestamp");
-  if (rawTimestamp) {
-    const dt = new Date(rawTimestamp);
-    const formattedTimestamp = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:${String(dt.getSeconds()).padStart(2, '0')}`;
-    formData.set("Timestamp", formattedTimestamp);
-  }
+    // Format timestamp
+    const rawTimestamp = formData.get("Timestamp");
+    if (rawTimestamp) {
+      const dt = new Date(rawTimestamp);
+      const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}:00`;
+      formData.set("Timestamp", formatted);
+    }
 
-  fetch(scriptURL, { method: 'POST', body: formData })
-    .then(res => res.text())
-    .then(() => {
-      alert("✅ Data berhasil dikirim");
-      e.target.reset();
-      loadData();
-      setTimeout(() => {
-        loadingEl.style.display = "none";
-        document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
-      }, 500);
+    fetch(scriptURL, {
+      method: 'POST',
+      body: formData
     })
-    .catch(() => {
-      loadingEl.style.display = "none";
-      alert("❌ Gagal mengirim data");
-    });
-});
+      .then(res => res.text())
+      .then(() => {
+        alert("✅ Data berhasil dikirim");
+        e.target.reset();
+        loadData();
+        document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
+      })
+      .catch(() => {
+        alert("❌ Gagal mengirim data");
+      });
+  });
+</script>
+
 
 
   // Search filter
