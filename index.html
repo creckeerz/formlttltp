@@ -6,6 +6,26 @@
   <title>Form Monitoring LTT & LTP</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/css/smart_wizard_all.min.css">
   <style>
+
+    .scrollable-table {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+#historyTable th,
+#historyTable td {
+  white-space: nowrap;
+}
+
+#historyTable th.sticky-col-3,
+#historyTable td.sticky-col-3 {
+  position: sticky;
+  left: 0;
+  background: #f8f8f8; /* latar belakang kolom tetap */
+  z-index: 2;
+}
+
+    
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f4f6f9;
@@ -304,7 +324,7 @@
     </div>
   </div>
 
-  <div class="table-wrapper">
+  <div class="table-wrapper scrollable-table">
     <table id="historyTable">
       <thead id="tableHead"><tr></tr></thead>
       <tbody></tbody>
@@ -338,7 +358,9 @@
     const tableBody = document.querySelector("#historyTable tbody");
     currentPage = page;
     tableBody.innerHTML = '';
-    tableHead.innerHTML = '<tr>' + defaultHeaders.map(h => `<th>${h}</th>`).join('') + '</tr>';
+    tableHead.innerHTML = '<tr>' + defaultHeaders.map((h, i) => 
+  `<th class="${i === 2 ? 'sticky-col-3' : ''}">${h}</th>`
+).join('') + '</tr>';
 
     const start = (page - 1) * perPage;
     const end = start + perPage;
@@ -346,13 +368,13 @@
 
     pageData.forEach(row => {
       const tr = document.createElement("tr");
-      row.forEach(cell => {
-        const td = document.createElement("td");
-        td.textContent = cell;
-        tr.appendChild(td);
-      });
-      tableBody.appendChild(tr);
-    });
+      row.forEach((cell, i) => {
+  const td = document.createElement("td");
+  if (i === 2) td.classList.add("sticky-col-3"); // Kolom "Nama Penyuluh"
+  td.textContent = cell;
+  tr.appendChild(td);
+});
+
 
     const pagination = document.getElementById("pagination");
     pagination.innerHTML = '';
