@@ -353,40 +353,45 @@
 
   const loadingEl = document.getElementById("loading");
 
-  function renderTablePage(page) {
-    const tableHead = document.getElementById("tableHead");
-    const tableBody = document.querySelector("#historyTable tbody");
-    currentPage = page;
-    tableBody.innerHTML = '';
-    tableHead.innerHTML = '<tr>' + defaultHeaders.map((h, i) => 
-  `<th class="${i === 2 ? 'sticky-col-3' : ''}">${h}</th>`
-).join('') + '</tr>';
+ function renderTablePage(page) {
+  const tableHead = document.getElementById("tableHead");
+  const tableBody = document.querySelector("#historyTable tbody");
+  currentPage = page;
+  tableBody.innerHTML = '';
+  
+  // Buat header dengan kolom ke-3 sticky
+  tableHead.innerHTML = '<tr>' + defaultHeaders.map((h, i) => 
+    `<th class="${i === 2 ? 'sticky-col-3' : ''}">${h}</th>`
+  ).join('') + '</tr>';
 
-    const start = (page - 1) * perPage;
-    const end = start + perPage;
-    const pageData = allData.slice(start, end);
+  const start = (page - 1) * perPage;
+  const end = start + perPage;
+  const pageData = allData.slice(start, end);
 
-    pageData.forEach(row => {
-      const tr = document.createElement("tr");
-      row.forEach((cell, i) => {
-  const td = document.createElement("td");
-  if (i === 2) td.classList.add("sticky-col-3"); // Kolom "Nama Penyuluh"
-  td.textContent = cell;
-  tr.appendChild(td);
-});
+  // Buat baris data
+  pageData.forEach(row => {
+    const tr = document.createElement("tr");
+    row.forEach((cell, i) => {
+      const td = document.createElement("td");
+      if (i === 2) td.classList.add("sticky-col-3"); // Kolom "Nama Penyuluh"
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    tableBody.appendChild(tr);
+  });
 
-
-    const pagination = document.getElementById("pagination");
-    pagination.innerHTML = '';
-    const totalPages = Math.ceil(allData.length / perPage);
-    for (let i = 1; i <= totalPages; i++) {
-      const btn = document.createElement("button");
-      btn.textContent = i;
-      if (i === page) btn.classList.add("active");
-      btn.onclick = () => renderTablePage(i);
-      pagination.appendChild(btn);
-    }
+  // Pagination
+  const pagination = document.getElementById("pagination");
+  pagination.innerHTML = '';
+  const totalPages = Math.ceil(allData.length / perPage);
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    if (i === page) btn.classList.add("active");
+    btn.onclick = () => renderTablePage(i);
+    pagination.appendChild(btn);
   }
+}
 
   function loadData() {
     fetch(scriptURL + '?read=1')
