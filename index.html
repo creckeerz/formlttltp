@@ -12,26 +12,43 @@
   max-width: 100%;
 }
 
+/* Mencegah teks memanjang memecah baris */
 #historyTable th,
 #historyTable td {
   white-space: nowrap;
 }
 
-#historyTable th.sticky-col-3,
+/* Kolom sticky untuk "Nama Penyuluh" (index ke-2) */
+#historyTable th.sticky-col-3 {
+  position: sticky;
+  left: 0;
+  background: #2c3e50; /* warna header sticky seragam */
+  color: white;
+  z-index: 3; /* lebih tinggi dari td */
+}
+
 #historyTable td.sticky-col-3 {
   position: sticky;
   left: 0;
-  background: #232e57; /* latar belakang kolom tetap */
+  background: #ffffff; /* warna isi sel sticky sama seperti baris lain */
+  color: #000;
   z-index: 2;
 }
 
-    
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f9;
-      padding: 20px;
-      margin: 0;
-    }
+/* Warna header umum */
+#historyTable th {
+  background: #2c3e50;
+  color: white;
+}
+
+/* Gaya umum */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f4f6f9;
+  padding: 20px;
+  margin: 0;
+}
+
 
     h2 {
       text-align: center;
