@@ -6,6 +6,84 @@
   <title>Form Monitoring LTT & LTP</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/css/smart_wizard_all.min.css">
   <style>
+  /* Additional styles for month validation */
+  .timestamp-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 14px;
+    display: none;
+    border-left: 4px solid #dc3545;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .timestamp-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 13px;
+    border-left: 4px solid #17a2b8;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .month-status-indicator {
+    background: linear-gradient(135deg, #e8f5e8, #d4edda);
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 15px;
+    font-size: 14px;
+    text-align: center;
+    color: #155724;
+  }
+
+  .admin-panel-link {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 12px;
+    margin-left: 15px;
+    padding: 5px 10px;
+    border: 1px solid #3498db;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+
+  .admin-panel-link:hover {
+    background: #3498db;
+    color: white;
+  }
+
+  /* Enhanced timestamp input styling */
+  input[name="Timestamp"] {
+    transition: border-color 0.3s ease;
+  }
+
+  input[name="Timestamp"]:invalid {
+    border-color: #dc3545;
+  }
+
+  input[name="Timestamp"]:valid {
+    border-color: #28a745;
+  }
+</style>
+
+ 
+  
+  <style>
     .scrollable-table {
       overflow-x: auto;
       max-width: 100%;
@@ -398,8 +476,8 @@
         <div class="tab-content">
           <!-- STEP 1 -->
           <div id="step-1" class="tab-pane" role="tabpanel">
-            <label>Timestamp</label>
-            <input type="datetime-local" name="Timestamp" required />
+  <label>Timestamp</label>
+  <input type="datetime-local" name="Timestamp" required />
             <label>Periode Monitoring</label>
             <select name="Periode Monitoring" required>
               <option value="">Pilih</option>
@@ -610,6 +688,297 @@
     ✅ Data berhasil dikirim
   </div>
 
+<script>
+// ============ MONTH LOCK SYSTEM INTEGRATION ============
+
+const MONTH_LOCK_CONFIG = {
+  STORAGE_KEY: 'ltt_month_settings',
+  DEFAULT_ENABLED_MONTHS: [new Date().getMonth() + 1] // Default: bulan ini saja
+};
+
+const MONTHS = [
+  { id: 1, name: 'Januari', shortName: 'Jan' },
+  { id: 2, name: 'Februari', shortName: 'Feb' },
+  { id: 3, name: 'Maret', shortName: 'Mar' },
+  { id: 4, name: 'April', shortName: 'Apr' },
+  { id: 5, name: 'Mei', shortName: 'Mei' },
+  { id: 6, name: 'Juni', shortName: 'Jun' },
+  { id: 7, name: 'Juli', shortName: 'Jul' },
+  { id: 8, name: 'Agustus', shortName: 'Agu' },
+  { id: 9, name: 'September', shortName: 'Sep' },
+  { id: 10, name: 'Oktober', shortName: 'Okt' },
+  { id: 11, name: 'November', shortName: 'Nov' },
+  { id: 12, name: 'Desember', shortName: 'Des' }
+];
+
+/**
+ * MONTH VALIDATOR - untuk digunakan di form utama
+ */
+const MonthValidator = {
+  
+  loadSettings() {
+    try {
+      const saved = localStorage.getItem(MONTH_LOCK_CONFIG.STORAGE_KEY);
+      if (saved) {
+        const settings = JSON.parse(saved);
+        return settings.enabled || MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
+      }
+      return MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
+    } catch (error) {
+      console.warn('Error loading month settings:', error);
+      return MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
+    }
+  },
+
+  isMonthEnabled(month) {
+    const enabledMonths = this.loadSettings();
+    return enabledMonths.includes(month);
+  },
+
+  validateTimestamp(timestamp) {
+    if (!timestamp) return { valid: true, message: '' };
+    
+    try {
+      const date = new Date(timestamp);
+      const month = date.getMonth() + 1;
+      const monthName = MONTHS.find(m => m.id === month)?.name || 'Unknown';
+      
+      if (this.isMonthEnabled(month)) {
+        return { valid: true, message: '' };
+      } else {
+        return { 
+          valid: false, 
+          message: `❌ Bulan ${monthName} tidak diizinkan untuk input data!` 
+        };
+      }
+    } catch (error) {
+      return { 
+        valid: false, 
+        message: '❌ Format timestamp tidak valid!' 
+      };
+    }
+  },
+
+  getEnabledMonthsText() {
+    const enabledMonths = this.loadSettings();
+    const monthNames = enabledMonths
+      .map(id => MONTHS.find(m => m.id === id)?.name)
+      .filter(Boolean)
+      .join(', ');
+    
+    return monthNames || 'Tidak ada bulan yang diizinkan';
+  },
+
+  setupTimestampValidation() {
+    const timestampInput = document.querySelector('input[name="Timestamp"]');
+    if (!timestampInput) {
+      console.warn('Timestamp input not found');
+      return;
+    }
+
+    // Create error message element
+    let errorElement = timestampInput.parentNode.querySelector('.timestamp-error');
+    if (!errorElement) {
+      errorElement = document.createElement('div');
+      errorElement.className = 'timestamp-error';
+      timestampInput.parentNode.appendChild(errorElement);
+    }
+
+    // Create info element for allowed months
+    let infoElement = timestampInput.parentNode.querySelector('.timestamp-info');
+    if (!infoElement) {
+      infoElement = document.createElement('div');
+      infoElement.className = 'timestamp-info';
+      infoElement.innerHTML = `ℹ️ Bulan yang diizinkan: <strong>${this.getEnabledMonthsText()}</strong>`;
+      timestampInput.parentNode.appendChild(infoElement);
+    }
+
+    // Add validation on change
+    timestampInput.addEventListener('change', (e) => {
+      const validation = this.validateTimestamp(e.target.value);
+      
+      if (validation.valid) {
+        errorElement.style.display = 'none';
+        timestampInput.style.borderColor = '#28a745';
+      } else {
+        errorElement.textContent = validation.message;
+        errorElement.style.display = 'block';
+        timestampInput.style.borderColor = '#dc3545';
+      }
+    });
+
+    // Add validation on input (real-time)
+    timestampInput.addEventListener('input', (e) => {
+      if (e.target.value) {
+        const validation = this.validateTimestamp(e.target.value);
+        
+        if (validation.valid) {
+          errorElement.style.display = 'none';
+          timestampInput.style.borderColor = '#28a745';
+        } else {
+          errorElement.textContent = validation.message;
+          errorElement.style.display = 'block';
+          timestampInput.style.borderColor = '#dc3545';
+        }
+      } else {
+        errorElement.style.display = 'none';
+        timestampInput.style.borderColor = '#ccc';
+      }
+    });
+
+    console.log('Timestamp validation setup complete');
+  },
+
+  validateFormTimestamp(formElement) {
+    const timestampInput = formElement.querySelector('input[name="Timestamp"]');
+    if (!timestampInput) return { valid: true, message: '' };
+
+    return this.validateTimestamp(timestampInput.value);
+  }
+};
+
+// MODIFIKASI FORM SUBMISSION YANG SUDAH ADA
+// Tambahkan validasi bulan ke dalam event listener form submit yang sudah ada
+
+// Temukan bagian form submission yang sudah ada dan modifikasi seperti ini:
+document.getElementById("monitoringForm").addEventListener('submit', async e => {
+  e.preventDefault();
+  
+  // Check auth before submit
+  if (!LTTAuth.isLoggedIn()) {
+    LTTAuth.logout();
+    return;
+  }
+
+  // *** TAMBAHAN: Validasi bulan sebelum submit ***
+  const validation = MonthValidator.validateFormTimestamp(e.target);
+  if (!validation.valid) {
+    alert(validation.message);
+    const timestampInput = e.target.querySelector('input[name="Timestamp"]');
+    if (timestampInput) {
+      timestampInput.focus();
+      timestampInput.style.borderColor = '#dc3545';
+    }
+    return;
+  }
+  // *** AKHIR TAMBAHAN ***
+
+  const form = e.target;
+  const submitButton = form.querySelector("button[type='submit']");
+  const formData = new FormData(form);
+
+  // Format timestamp
+  const rawTimestamp = formData.get("Timestamp");
+  if (rawTimestamp) {
+    const dt = new Date(rawTimestamp);
+    const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:00`;
+    formData.set("Timestamp", formatted);
+  }
+
+  // Sisa kode form submission tetap sama...
+  // ... (kode submission yang sudah ada)
+});
+
+// TAMBAHKAN MONTH STATUS INDICATOR
+function addMonthStatusIndicator() {
+  const header = document.querySelector('.main-header');
+  if (!header || document.getElementById('monthStatusIndicator')) return;
+
+  const statusDiv = document.createElement('div');
+  statusDiv.id = 'monthStatusIndicator';
+  statusDiv.className = 'month-status-indicator';
+  
+  const enabledMonths = MonthValidator.getEnabledMonthsText();
+  statusDiv.innerHTML = `
+    📅 <strong>Bulan Input Aktif:</strong> ${enabledMonths}
+    <br><small>Hanya bulan yang tercantum di atas yang dapat digunakan untuk input data</small>
+  `;
+  
+  header.appendChild(statusDiv);
+}
+
+// INITIALIZATION - Tambahkan ke bagian initialization yang sudah ada
+function initializeMonthValidation() {
+  console.log('Initializing month validation system...');
+  
+  // Setup timestamp validation
+  MonthValidator.setupTimestampValidation();
+  
+  // Add month status indicator
+  addMonthStatusIndicator();
+  
+  console.log('Month validation system initialized');
+  console.log('Enabled months:', MonthValidator.getEnabledMonthsText());
+}
+
+// MODIFIKASI BAGIAN INITIALIZATION YANG SUDAH ADA
+// Tambahkan pemanggilan initializeMonthValidation() ke dalam initializeApp() yang sudah ada
+
+// Temukan function initializeApp() dan tambahkan:
+function initializeApp() {
+  console.log('Initializing app...');
+  
+  if (!checkAuthentication()) {
+    return;
+  }
+  
+  // Initialize components yang sudah ada
+  populateKecamatan();
+  loadData();
+  
+  // Setup offline functionality
+  updateConnectionStatus();
+  setupAutoSave();
+  
+  // *** TAMBAHAN: Initialize month validation ***
+  initializeMonthValidation();
+  
+  // Restore form data jika ada
+  setTimeout(() => {
+    restoreFormData();
+  }, 1000);
+  
+  // Auto-sync setiap 30 detik jika online
+  setInterval(() => {
+    if (navigator.onLine && getPendingSubmissions().length > 0) {
+      syncPendingSubmissions();
+    }
+  }, 30000);
+  
+  console.log('App initialized successfully');
+}
+
+// Make MonthValidator globally available
+window.MonthValidator = MonthValidator;
+
+// Debugging utilities
+window.MonthDebug = {
+  getCurrentSettings() {
+    return MonthValidator.loadSettings();
+  },
+  
+  testTimestamp(timestamp) {
+    return MonthValidator.validateTimestamp(timestamp);
+  },
+  
+  getEnabledMonths() {
+    return MonthValidator.getEnabledMonthsText();
+  },
+  
+  simulateMonthChange(enabledMonths) {
+    const settings = {
+      enabled: enabledMonths,
+      lastUpdated: Date.now(),
+      updatedBy: 'debug'
+    };
+    localStorage.setItem(MONTH_LOCK_CONFIG.STORAGE_KEY, JSON.stringify(settings));
+    location.reload();
+  }
+};
+</script>
+
+
+  
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
   
