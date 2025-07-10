@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Form Monitoring LTT & LTP</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/css/smart_wizard_all.min.css">
+  <style>
+  /* Additional styles for month validation */
+  .timestamp-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 14px;
+    display: none;
+    border-left: 4px solid #dc3545;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .timestamp-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 13px;
+    border-left: 4px solid #17a2b8;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .month-status-indicator {
+    background: linear-gradient(135deg, #e8f5e8, #d4edda);
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 15px;
+    font-size: 14px;
+    text-align: center;
+    color: #155724;
+  }
+
+  .admin-panel-link {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 12px;
+    margin-left: 15px;
+    padding: 5px 10px;
+    border: 1px solid #3498db;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+
+  .admin-panel-link:hover {
+    background: #3498db;
+    color: white;
+  }
+
+  /* Enhanced timestamp input styling */
+  input[name="Timestamp"] {
+    transition: border-color 0.3s ease;
+  }
+
+  input[name="Timestamp"]:invalid {
+    border-color: #dc3545;
+  }
+
+  input[name="Timestamp"]:valid {
+    border-color: #28a745;
+  }
+</style>
+
+ 
+  
+  <style>
+    .scrollable-table {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+
+    /* Mencegah teks memanjang memecah baris */
+    #historyTable th,
+    #historyTable td {
+      white-space: nowrap;
+    }
+
+    /* Kolom sticky untuk "Nama Penyuluh" (index ke-2) */
+    #historyTable th.sticky-col-3 {
+      position: sticky;
+      left: 0;
+      background: #2c3e50;
+      color: white;
+      z-index: 3;
+    }
+
+    #historyTable td.sticky-col-3 {
+      position: sticky;
+      left: 0;
+      background: #ffffff;
+      color: #000;
+      z-index: 2;
+    }
+
+    /* Warna header umum */
+    #historyTable th {
+      background: #2c3e50;
+      color: white;
+    }
+
+    /* Gaya umum */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .main-header {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      max-width: 768px;
+      margin: 0 auto 30px auto;
+      position: relative;
+    }
+
+    .main-header h1 {
+      font-size: 28px;
+      margin: 0 0 15px 0;
+      color: #2c3e50;
+    }
+
+    /* User info and logout button */
+    .user-info {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    .session-info {
+      font-size: 12px;
+      color: #95a5a6;
+    }
+
+    .sub-headers {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .sub-header {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      text-align: center;
+      flex: 1;
+      min-width: 200px;
+      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .sub-header.ltt {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+
+    .sub-header.ltp {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+      box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    }
+
+    .sw-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      max-width: 768px;
+      margin: 0 auto 30px auto;
+    }
+
+    .sw-container label {
+      font-weight: 600;
+      color: #34495e;
+      display: block;
+      margin-top: 14px;
+    }
+
+    .sw-container input, .sw-container select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    button.sw-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button.sw-btn:hover {
+      background: #27ae60;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 0 auto 50px auto;
+      max-width: 768px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    th {
+      background: #2c3e50;
+      color: white;
+    }
+
+    .controls {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: 768px;
+      margin-inline: auto;
+    }
+
+    .controls input[type="text"] {
+      padding: 8px;
+      width: 100%;
+      max-width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .controls button {
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+
+    /* Offline Status Indicator */
+    .offline-status {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #e74c3c;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .offline-status.online {
+      background: #2ecc71;
+    }
+
+    .offline-status.syncing {
+      background: #f39c12;
+    }
+
+    /* Pending Submissions Counter */
+    .pending-counter {
+      position: fixed;
+      top: 70px;
+      left: 20px;
+      background: #9b59b6;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      z-index: 1000;
+      display: none;
+    }
+
+    /* Form auto-save indicator */
+    .form-auto-save {
+      background: #e8f5e8;
+      border-left: 4px solid #2ecc71;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-size: 14px;
+      display: none;
+    }
+
+    /* Auth protection overlay */
+    .auth-protection {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 10000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .auth-loading {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    .auth-loading .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Session warning */
+    .session-warning {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #f39c12;
+      color: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      z-index: 10001;
+      text-align: center;
+      display: none;
+    }
+
+    .session-warning button {
+      background: white;
+      color: #f39c12;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      margin: 0 5px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- Auth Protection Overlay -->
+  <div id="authProtection" class="auth-protection">
+    <div class="auth-loading">
+      <div class="spinner"></div>
+      <h3>Memverifikasi akses...</h3>
+      <p>Mohon tunggu sebentar</p>
+    </div>
+  </div>
+
+  <!-- Session Warning -->
+  <div id="sessionWarning" class="session-warning">
+    <h4>⚠️ Sesi Akan Berakhir</h4>
+    <p>Sesi Anda akan berakhir dalam <span id="sessionCountdown">5</span> menit.</p>
+    <button onclick="extendSession()">Perpanjang Sesi</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Offline Status Indicators -->
+  <div id="offlineStatus" class="offline-status">
+    📡 Status Koneksi
+  </div>
+  
+  <div id="pendingCounter" class="pending-counter">
+    📤 <span id="pendingCount">0</span> data menunggu sinkronisasi
+  </div>
+
+  <!-- Main Header with Sub Headers -->
+  <div class="main-header">
+   <div class="user-info">
+  <div class="session-info">
+    <div>Kode: <span id="userCode">***</span></div>
+    <div>Login: <span id="loginTime">***</span></div>
+  </div>
+      <!-- TAMBAHAN: Link ke month settings -->
+  <a href="month-settings.html" class="admin-panel-link" title="Pengaturan Bulan Input">
+    ⚙️ Atur Bulan
+  </a>
+  <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+</div>
+    
+    <h1>Form Monitoring LTT & LTP</h1>
+    <p>Sistem Monitoring Luas Tambah Tanam dan Luas Tambah Panen</p>
+    <div class="sub-headers">
+      <div class="sub-header ltt">
+        <strong>Luas Tambah Tanam (LTT)</strong><br>
+        <small>Data Penanaman Jagung & Padi</small>
+      </div>
+      <div class="sub-header ltp">
+        <strong>Luas Tambah Panen (LTP)</strong><br>
+        <small>Data Panen Padi & Produktivitas</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="sw-container">
+    <!-- Auto-save indicator -->
+    <div id="autoSaveIndicator" class="form-auto-save">
+      💾 Data form disimpan otomatis setiap perubahan
+    </div>
+
+    <form id="monitoringForm">
+      <div id="smartwizard">
+        <ul class="nav">
+          <li><a class="nav-link" href="#step-1">Step 1<br/><small>Info Dasar</small></a></li>
+          <li><a class="nav-link" href="#step-2">Step 2<br/><small>Data LTT</small></a></li>
+          <li><a class="nav-link" href="#step-3">Step 3<br/><small>Data LTP</small></a></li>
+          <li><a class="nav-link" href="#step-4">Step 4<br/><small>Jagung & Submit</small></a></li>
+        </ul>
+
+        <div class="tab-content">
+          <!-- STEP 1 -->
+          <div id="step-1" class="tab-pane" role="tabpanel">
+  <label>Timestamp</label>
+  <input type="datetime-local" name="Timestamp" required />
+            <label>Periode Monitoring</label>
+            <select name="Periode Monitoring" required>
+              <option value="">Pilih</option>
+              <option value="Minggu ke 1">Minggu ke 1</option>
+              <option value="Minggu ke 2">Minggu ke 2</option>
+              <option value="Minggu ke 3">Minggu ke 3</option>
+              <option value="Minggu ke 4">Minggu ke 4</option>
+              <option value="Minggu ke 5">Minggu ke 5</option>
+            </select>
+
+            <label>Nama Penyuluh:</label>
+            <select name="nama" required>
+              <option value="">-- Pilih Penyuluh --</option>
+              <option>A.PURNAMA PUTRA</option>
+              <option>AAN PUJINURINSAN</option>
+              <option>ABDUL RAHMAN</option>
+              <option>AGUS SAIFUDDIN</option>
+              <option>AGUSMANTO</option>
+              <option>AHADI</option>
+              <option>ALMIZAN</option>
+              <option>ALWAN SASRUDIN</option>
+              <option>ANDI</option>
+              <option>ANDI WIHARDI</option>
+              <option>ANDI WILLIAM</option>
+              <option>ANTO SAPUTRA</option>
+              <option>ARAMIYA</option>
+              <option>BUDI SETIAWAN</option>
+              <option>DARMA IRAWAN</option>
+              <option>DARMADI</option>
+              <option>DARUSSALAM</option>
+              <option>DINO</option>
+              <option>DIYANTO</option>
+              <option>EDI WAHYUDI</option>
+              <option>EDWARDI</option>
+              <option>EKO SURYONO</option>
+              <option>ELYA KANDAU</option>
+              <option>EMELDA</option>
+              <option>ESPAHANI</option>
+              <option>FITRIANI</option>
+              <option>FREEADI</option>
+              <option>HENGKY KUSUMA INDRA</option>
+              <option>HERY PRAMONO</option>
+              <option>IBNU ROSIHAN</option>
+              <option>IMANSYAH</option>
+              <option>IRLAH</option>
+              <option>IWAN APRIANTO</option>
+              <option>JAKA SUBHAN</option>
+              <option>JAWARI</option>
+              <option>JAYA HARTO</option>
+              <option>JUANDA</option>
+              <option>JUANDI</option>
+              <option>JUMIATI</option>
+              <option>KAMRAN</option>
+              <option>KARNILA</option>
+              <option>K.BUDIMAN</option>
+              <option>LILI SINTA RUSTIKA</option>
+              <option>MARNI</option>
+              <option>MUHAMMAD IRHAMSYAH</option>
+              <option>MUHAMMAD SAHADI</option>
+              <option>MULYADI</option>
+              <option>MURNI HADI</option>
+              <option>MURNIATI</option>
+              <option>NAZRULLAH</option>
+              <option>NEVI ARYATI</option>
+              <option>NIRLAWATI</option>
+              <option>NINING MUSWANI</option>
+              <option>NOVI YANA</option>
+              <option>NURLENA</option>
+              <option>NURHAYATI</option>
+              <option>NUR LAILA SARI</option>
+              <option>RAKHMAD BURHAN</option>
+              <option>RENA</option>
+              <option>RIAN PRASOJO</option>
+              <option>RIZA NOVINA</option>
+              <option>ROMI</option>
+              <option>RONA NURBAYA</option>
+              <option>RUSDIANSYAH</option>
+              <option>SAMTIDAR</option>
+              <option>SAR'ANI</option>
+              <option>SARTINI</option>
+              <option>SAPTINO</option>
+              <option>STEPHANUS PUJI SETIAWAN</option>
+              <option>SUHAIMI</option>
+              <option>SUDARTO</option>
+              <option>SUMIATI</option>
+              <option>SUPARJO</option>
+              <option>SURIYANTO</option>
+              <option>TAUPIT</option>
+              <option>TEGUH PRIONO</option>
+              <option>TULUS PRIADI</option>
+              <option>U. NASHIRUDDIN</option>
+              <option>VOLENDI</option>
+              <option>WAHIDAH</option>
+              <option>WINARDI</option>
+              <option>WIWIT</option>
+              <option>YANTI</option>
+              <option>YENI DARMILA</option>
+              <option>YUNIA</option>
+              <option>YUSNANI</option>
+              <option>ZULPIANA</option>
+            </select>
+
+            <label>Kecamatan</label>
+            <select name="Kecamatan" id="kecamatanSelect" required></select>
+            <label>Desa</label>
+            <select name="Desa" id="desaSelect" required></select>
+          </div>
+
+          <!-- STEP 2 - DATA LTT -->
+          <div id="step-2" class="tab-pane" role="tabpanel">
+            <label>Luas Baku Sawah (LBS)</label>
+            <input type="number" name="Luas Baku Sawah (LBS)" step="0.01" required />
+            <label>Luas Tanam Tahun Sebelumnya (Ha)</label>
+            <input type="number" name="Luas Tanam Tahun Sebelumnya (Ha)" step="0.01" required />
+            <label>IP Existing</label>
+            <input type="text" name="IP Existing" required />
+            <label>LTT Padi Reguler (Ha)</label>
+            <input type="number" name="LTT Padi Reguler (Ha)" step="0.01" required />
+            <label>LTT Padi Oplah (Ha)</label>
+            <input type="number" name="LTT Padi Oplah (Ha)" step="0.01" required />
+            <label>LTT Padi Irigasi Pompa (Ha)</label>
+            <input type="number" name="LTT Padi Irigasi Pompa (Ha)" step="0.01" required />
+            <label>LTT Padi Gogo / Lahan Kering</label>
+            <input type="number" name="LTT Padi Gogo / Lahan Kering" step="0.01" required />
+          </div>
+
+          <!-- STEP 3 - DATA LTP -->
+          <div id="step-3" class="tab-pane" role="tabpanel">
+            <label>LTP Padi Reguler (Ha)</label>
+            <input type="number" name="LTP Padi Reguler (Ha)" step="0.01" required />
+            <label>Provitas Padi Reguler (Ku/Ha)</label>
+            <input type="number" name="Provitas Padi Reguler (Ku/Ha)" step="0.01" required />
+            <label>LTP Padi Oplah (Ha)</label>
+            <input type="number" name="LTP Padi Oplah (Ha)" step="0.01" required />
+            <label>Provitas Padi Oplah (Ku/Ha)</label>
+            <input type="number" name="Provitas Padi Oplah (Ku/Ha)" step="0.01" required />
+            <label>LTP Padi Irigasi Pompa (Ha)</label>
+            <input type="number" name="LTP Padi Irigasi Pompa (Ha)" step="0.01" required />
+            <label>Provitas Padi irigasi Pompa (Ku/Ha)</label>
+            <input type="number" name="Provitas Padi irigasi Pompa (Ku/Ha)" step="0.01" required />
+            <label>LTP Padi Gogo / Lahan Kering</label>
+            <input type="number" name="LTP Padi Gogo / Lahan Kering" step="0.01" required />
+            <label>Provitas Padi Gogo (Ku/Ha)</label>
+            <input type="number" name="Provitas Padi Gogo (Ku/Ha)" step="0.01" required />
+          </div>
+
+          <!-- STEP 4 - JAGUNG & SUBMIT -->
+          <div id="step-4" class="tab-pane" role="tabpanel">
+            <label>LTT Jagung (Ha)</label>
+            <input type="number" name="LTT Jagung (Ha)" step="0.01" required />
+            <label>LTP Jagung (Ha)</label>
+            <input type="number" name="LTP Jagung (Ha)" step="0.01" required />
+            <label>Provitas Jagung (Ku/Ha)</label>
+            <input type="number" name="Provitas Jagung (Ku/Ha)" step="0.01" required />
+            <button type="submit">✅ Kirim Data</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table & Control -->
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="🔍 Cari di tabel...">
+    <div>
+      <button type="button" onclick="loadData()">🔄 Reload Data</button>
+      <button type="button" onclick="exportTableToExcel()">📥 Export Excel</button>
+      <button type="button" id="manualSyncBtn" onclick="manualSync()" style="display: none;">🔄 Sync Manual</button>
+    </div>
+  </div>
+
+  <div class="table-wrapper scrollable-table">
+    <table id="historyTable">
+      <thead id="tableHead"><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- Loading & Toast -->
+  <div id="loadingOverlay" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 20px;
+  ">
+    ⏳ Mengirim data...
+  </div>
+
+  <div id="toast" style="
+    display: none;
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: #2ecc71;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    z-index: 10000;
+  ">
+    ✅ Data berhasil dikirim
+  </div>
+
+<script>
+// ============ MONTH LOCK SYSTEM INTEGRATION ============
+
+const MONTH_LOCK_CONFIG = {
+  STORAGE_KEY: 'ltt_month_settings',
+  DEFAULT_ENABLED_MONTHS: [new Date().getMonth() + 1] // Default: bulan ini saja
+};
+
+const MONTHS = [
+  { id: 1, name: 'Januari', shortName: 'Jan' },
+  { id: 2, name: 'Februari', shortName: 'Feb' },
+  { id: 3, name: 'Maret', shortName: 'Mar' },
+  { id: 4, name: 'April', shortName: 'Apr' },
+  { id: 5, name: 'Mei', shortName: 'Mei' },
+  { id: 6, name: 'Juni', shortName: 'Jun' },
+  { id: 7, name: 'Juli', shortName: 'Jul' },
+  { id: 8, name: 'Agustus', shortName: 'Agu' },
+  { id: 9, name: 'September', shortName: 'Sep' },
+  { id: 10, name: 'Oktober', shortName: 'Okt' },
+  { id: 11, name: 'November', shortName: 'Nov' },
+  { id: 12, name: 'Desember', shortName: 'Des' }
+];
+
+/**
+ * MONTH VALIDATOR - untuk digunakan di form utama
+ */
+const MonthValidator = {
+  
+  loadSettings() {
+    try {
+      const saved = localStorage.getItem(MONTH_LOCK_CONFIG.STORAGE_KEY);
+      if (saved) {
+        const settings = JSON.parse(saved);
+        return settings.enabled || MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
+      }
+      return MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
+    } catch (error) {
+      console.warn('Error loading month settings:', error);
+      return MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
+    }
+  },
+
+  isMonthEnabled(month) {
+    const enabledMonths = this.loadSettings();
+    return enabledMonths.includes(month);
+  },
+
+  validateTimestamp(timestamp) {
+    if (!timestamp) return { valid: true, message: '' };
+    
+    try {
+      const date = new Date(timestamp);
+      const month = date.getMonth() + 1;
+      const monthName = MONTHS.find(m => m.id === month)?.name || 'Unknown';
+      
+      if (this.isMonthEnabled(month)) {
+        return { valid: true, message: '' };
+      } else {
+        return { 
+          valid: false, 
+          message: `❌ Bulan ${monthName} tidak diizinkan untuk input data!` 
+        };
+      }
+    } catch (error) {
+      return { 
+        valid: false, 
+        message: '❌ Format timestamp tidak valid!' 
+      };
+    }
+  },
+
+  getEnabledMonthsText() {
+    const enabledMonths = this.loadSettings();
+    const monthNames = enabledMonths
+      .map(id => MONTHS.find(m => m.id === id)?.name)
+      .filter(Boolean)
+      .join(', ');
+    
+    return monthNames || 'Tidak ada bulan yang diizinkan';
+  },
+
+  setupTimestampValidation() {
+    const timestampInput = document.querySelector('input[name="Timestamp"]');
+    if (!timestampInput) {
+      console.warn('Timestamp input not found');
+      return;
+    }
+
+    // Create error message element
+    let errorElement = timestampInput.parentNode.querySelector('.timestamp-error');
+    if (!errorElement) {
+      errorElement = document.createElement('div');
+      errorElement.className = 'timestamp-error';
+      timestampInput.parentNode.appendChild(errorElement);
+    }
+
+    // Create info element for allowed months
+    let infoElement = timestampInput.parentNode.querySelector('.timestamp-info');
+    if (!infoElement) {
+      infoElement = document.createElement('div');
+      infoElement.className = 'timestamp-info';
+      infoElement.innerHTML = `ℹ️ Bulan yang diizinkan: <strong>${this.getEnabledMonthsText()}</strong>`;
+      timestampInput.parentNode.appendChild(infoElement);
+    }
+
+    // Add validation on change
+    timestampInput.addEventListener('change', (e) => {
+      const validation = this.validateTimestamp(e.target.value);
+      
+      if (validation.valid) {
+        errorElement.style.display = 'none';
+        timestampInput.style.borderColor = '#28a745';
+      } else {
+        errorElement.textContent = validation.message;
+        errorElement.style.display = 'block';
+        timestampInput.style.borderColor = '#dc3545';
+      }
+    });
+
+    // Add validation on input (real-time)
+    timestampInput.addEventListener('input', (e) => {
+      if (e.target.value) {
+        const validation = this.validateTimestamp(e.target.value);
+        
+        if (validation.valid) {
+          errorElement.style.display = 'none';
+          timestampInput.style.borderColor = '#28a745';
+        } else {
+          errorElement.textContent = validation.message;
+          errorElement.style.display = 'block';
+          timestampInput.style.borderColor = '#dc3545';
+        }
+      } else {
+        errorElement.style.display = 'none';
+        timestampInput.style.borderColor = '#ccc';
+      }
+    });
+
+    console.log('Timestamp validation setup complete');
+  },
+
+  validateFormTimestamp(formElement) {
+    const timestampInput = formElement.querySelector('input[name="Timestamp"]');
+    if (!timestampInput) return { valid: true, message: '' };
+
+    return this.validateTimestamp(timestampInput.value);
+  }
+};
+
+// MODIFIKASI FORM SUBMISSION YANG SUDAH ADA
+// Tambahkan validasi bulan ke dalam event listener form submit yang sudah ada
+
+// Temukan bagian form submission yang sudah ada dan modifikasi seperti ini:
+document.getElementById("monitoringForm").addEventListener('submit', async e => {
+  e.preventDefault();
+  
+  // Check auth before submit
+  if (!LTTAuth.isLoggedIn()) {
+    LTTAuth.logout();
+    return;
+  }
+
+  // *** PERBAIKAN 1: VALIDASI BULAN SEBELUM SUBMIT ***
+  const validation = MonthValidator.validateFormTimestamp(e.target);
+  if (!validation.valid) {
+    alert(validation.message);
+    const timestampInput = e.target.querySelector('input[name="Timestamp"]');
+    if (timestampInput) {
+      timestampInput.focus();
+      timestampInput.style.borderColor = '#dc3545';
+      
+      // Scroll ke timestamp input jika menggunakan SmartWizard
+      if (typeof $ !== 'undefined' && $.fn.smartWizard) {
+        $('#smartwizard').smartWizard('goToStep', 0); // Go to step 1
+      }
+    }
+    return;
+  }
+  
+  // *** AKHIR TAMBAHAN ***
+
+ const form = e.target;
+  const submitButton = form.querySelector("button[type='submit']");
+  const formData = new FormData(form);
+
+  // Format timestamp
+  const rawTimestamp = formData.get("Timestamp");
+  if (rawTimestamp) {
+    const dt = new Date(rawTimestamp);
+    const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:00`;
+    formData.set("Timestamp", formatted);
+  }
+
+  // Disable submit button
+  submitButton.disabled = true;
+  
+  if (!navigator.onLine) {
+    // Offline: simpan ke queue
+    const submissionId = saveSubmissionToQueue(formData);
+    showToast("📱 Offline: Data disimpan lokal dan akan dikirim otomatis saat online", true);
+    form.reset();
+    localStorage.removeItem('ltt_form_data');
+    submitButton.disabled = false;
+    return;
+  }
+
+  // Online: coba kirim langsung
+  showLoading();
+  
+  try {
+    const response = await fetch(scriptURL, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (response.ok) {
+      showToast("✅ Data berhasil dikirim", true);
+      form.reset();
+      localStorage.removeItem('ltt_form_data');
+      loadData();
+      document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (error) {
+    // Jika gagal kirim online, simpan ke queue offline
+    const submissionId = saveSubmissionToQueue(formData);
+    showToast("⚠️ Koneksi bermasalah. Data disimpan lokal dan akan dikirim otomatis saat koneksi stabil", false);
+    form.reset();
+    localStorage.removeItem('ltt_form_data');
+  } finally {
+    hideLoading();
+    submitButton.disabled = false;
+  }
+});
+
+
+  
+  // *** PERBAIKAN 4: ENHANCED SMARTWIZARD VALIDATION ***
+// Tambahkan setelah initSmartWizard():
+function enhanceSmartWizardValidation() {
+  // Check if SmartWizard is available
+  if (typeof $ !== 'undefined' && $.fn && $.fn.smartWizard) {
+    $('#smartwizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex) {
+      // Validate timestamp when leaving step 1 (info dasar)
+      if (currentStepIndex === 0) {
+        const form = document.getElementById("monitoringForm");
+        const validation = MonthValidator.validateFormTimestamp(form);
+        
+        if (!validation.valid) {
+          alert(validation.message);
+          const timestampInput = form.querySelector('input[name="Timestamp"]');
+          if (timestampInput) {
+            timestampInput.focus();
+            timestampInput.style.borderColor = '#dc3545';
+          }
+          return false; // Prevent navigation to next step
+        }
+      }
+    });
+    
+    console.log('SmartWizard enhanced with month validation');
+  }
+}
+
+// *** PERBAIKAN 5: PANGGIL enhanceSmartWizardValidation ***
+// Tambahkan di akhir initSmartWizard():
+function initSmartWizard() {
+  try {
+    if (typeof $ !== 'undefined' && $.fn && $.fn.smartWizard) {
+      $('#smartwizard').smartWizard({
+        theme: 'dots',
+        autoAdjustHeight: true,
+        toolbarSettings: {
+          toolbarPosition: 'bottom',
+          showNextButton: true,
+          showPreviousButton: true
+        }
+      });
+      
+      // *** TAMBAHAN: Enhance dengan month validation ***
+      enhanceSmartWizardValidation();
+      
+      console.log('SmartWizard initialized successfully');
+    } else {
+      console.log('SmartWizard not available, form will work without step navigation');
+      document.querySelectorAll('.tab-pane').forEach((pane, index) => {
+        if (index === 0) pane.style.display = 'block';
+        else pane.style.display = 'none';
+      });
+    }
+  } catch (error) {
+    console.log('SmartWizard initialization failed:', error);
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+      pane.style.display = 'block';
+    });
+  }
+  
+  // Initialize app regardless
+  initializeApp();
+}
+
+// *** PERBAIKAN 6: SESSION DURATION ***
+// Ganti SESSION_DURATION dari 8 jam ke 1 jam:
+const SESSION_DURATION = 1 * 60 * 60 * 1000; // 1 jam (bukan 8 jam)
+
+// *** PERBAIKAN 7: DEBUGGING COMMANDS ***
+// Tambahkan di akhir script untuk debugging:
+console.log('=== MONTH VALIDATION DEBUG ===');
+console.log('Available commands:');
+console.log('MonthDebug.getCurrentSettings() - Lihat bulan aktif');
+console.log('MonthDebug.testTimestamp("2025-03-15T10:00") - Test validasi');
+console.log('MonthDebug.simulateMonthChange([1,2,3]) - Set Jan-Mar aktif');
+console.log('MonthValidator.getEnabledMonthsText() - Lihat teks bulan aktif');
+
+
+</script>
+
+
+  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
+  
+  <script>
+    // ============ AUTHENTICATION SYSTEM ============
+    
+    const SESSION_KEY = 'ltt_session';
+    const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 jam
+    const WARNING_TIME = 5 * 60 * 1000; // Warning 5 menit sebelum expired
+    let sessionWarningInterval = null;
+    let sessionCheckInterval = null;
+
+    // Auth object untuk mengelola autentikasi
+    const LTTAuth = {
+      isLoggedIn: function() {
+        const session = localStorage.getItem(SESSION_KEY);
+        if (!session) return false;
+        
+        try {
+          const sessionData = JSON.parse(session);
+          return Date.now() < sessionData.expiresAt;
+        } catch {
+          return false;
+        }
+      },
+      
+      logout: function() {
+        localStorage.removeItem(SESSION_KEY);
+        window.location.href = 'login.html';
+      },
+      
+      requireAuth: function() {
+        if (!this.isLoggedIn()) {
+          window.location.href = 'login.html';
+          return false;
+        }
+        return true;
+      },
+      
+      getSession: function() {
+        const session = localStorage.getItem(SESSION_KEY);
+        if (!session) return null;
+        
+        try {
+          return JSON.parse(session);
+        } catch {
+          return null;
+        }
+      },
+
+      extendSession: function() {
+        const session = this.getSession();
+        if (session) {
+          session.expiresAt = Date.now() + SESSION_DURATION;
+          localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+          this.hideSessionWarning();
+          showToast('✅ Sesi berhasil diperpanjang', true);
+        }
+      }
+    };
+
+    // Check authentication saat halaman dimuat
+    function checkAuthentication() {
+      const authProtection = document.getElementById('authProtection');
+      
+      if (!LTTAuth.isLoggedIn()) {
+        // Tidak ada sesi valid, redirect ke login
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+        return false;
+      }
+      
+      // Sesi valid, sembunyikan protection overlay
+      authProtection.style.display = 'none';
+      
+      // Update user info di header
+      updateUserInfo();
+      
+      // Start session monitoring
+      startSessionMonitoring();
+      
+      return true;
+    }
+
+    // Update informasi user di header
+    function updateUserInfo() {
+      const session = LTTAuth.getSession();
+      if (session) {
+        document.getElementById('userCode').textContent = session.accessCode;
+        document.getElementById('loginTime').textContent = new Date(session.loginTime).toLocaleTimeString();
+      }
+    }
+
+    // Monitoring sesi
+    function startSessionMonitoring() {
+      // Check session setiap 30 detik
+      sessionCheckInterval = setInterval(() => {
+        if (!LTTAuth.isLoggedIn()) {
+          LTTAuth.logout();
+          return;
+        }
+        
+        const session = LTTAuth.getSession();
+        if (session) {
+          const timeLeft = session.expiresAt - Date.now();
+          
+          // Show warning jika sisa waktu <= 5 menit
+          if (timeLeft <= WARNING_TIME && timeLeft > 0) {
+            showSessionWarning(Math.ceil(timeLeft / 60000)); // Convert ke menit
+          }
+        }
+      }, 30000);
+    }
+
+    // Tampilkan peringatan sesi akan habis
+    function showSessionWarning(minutesLeft) {
+      const warningEl = document.getElementById('sessionWarning');
+      const countdownEl = document.getElementById('sessionCountdown');
+      
+      countdownEl.textContent = minutesLeft;
+      warningEl.style.display = 'block';
+      
+      // Update countdown setiap menit
+      if (!sessionWarningInterval) {
+        sessionWarningInterval = setInterval(() => {
+          const session = LTTAuth.getSession();
+          if (!session) {
+            clearInterval(sessionWarningInterval);
+            sessionWarningInterval = null;
+            return;
+          }
+          
+          const timeLeft = session.expiresAt - Date.now();
+          const minutes = Math.ceil(timeLeft / 60000);
+          
+          if (minutes <= 0) {
+            clearInterval(sessionWarningInterval);
+            sessionWarningInterval = null;
+            LTTAuth.logout();
+            return;
+          }
+          
+          countdownEl.textContent = minutes;
+        }, 60000);
+      }
+    }
+
+    // Sembunyikan peringatan sesi
+    function hideSessionWarning() {
+      document.getElementById('sessionWarning').style.display = 'none';
+      if (sessionWarningInterval) {
+        clearInterval(sessionWarningInterval);
+        sessionWarningInterval = null;
+      }
+    }
+
+    // Global functions untuk button
+    function extendSession() {
+      LTTAuth.extendSession();
+    }
+
+    function logout() {
+      if (confirm('Apakah Anda yakin ingin logout?')) {
+        LTTAuth.logout();
+      }
+    }
+
+    // ============ ORIGINAL FORM FUNCTIONALITY ============
+    
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzEopPS-bHiRVbW2hNOEoxA7b66V00KNriCsmqM_hlWzKEVsflEtpRRX6i8KhzdFkBSiw/exec';
+    const perPage = 5;
+    let allData = [], originalData = [], currentPage = 1;
+    let isOnline = navigator.onLine;
+    let autoSaveTimeout = null;
+
+    // Header yang sesuai dengan urutan di spreadsheet yang diinginkan
+    const defaultHeaders = [
+      "Timestamp", "Periode Monitoring", "Nama Penyuluh", "Kecamatan", "Desa",
+      "LTT Padi Reguler (Ha)", "LTT Padi Oplah (Ha)", "LTT Padi Irigasi Pompa (Ha)",
+      "LTP Padi Reguler (Ha)", "Provitas Padi Reguler (Ku/Ha)", "LTP Padi Oplah (Ha)",
+      "Provitas Padi Oplah (Ku/Ha)", "LTP Padi Irigasi Pompa (Ha)", "Provitas Padi irigasi Pompa (Ku/Ha)",
+      "LTT Padi Gogo / Lahan Kering", "LTP Padi Gogo / Lahan Kering", "LTT Jagung (Ha)",
+      "LTP Jagung (Ha)", "Provitas Jagung (Ku/Ha)", "Luas Baku Sawah (LBS)",
+      "IP Existing", "Luas Tanam Tahun Sebelumnya (Ha)", "Provitas Padi Gogo (Ku/Ha)"
+    ];
+
+    // ============ OFFLINE FUNCTIONALITY ============
+    
+    // Memonitor status koneksi
+    function updateConnectionStatus() {
+      const statusEl = document.getElementById('offlineStatus');
+      
+      if (navigator.onLine) {
+        statusEl.textContent = '🟢 Online';
+        statusEl.className = 'offline-status online';
+        statusEl.style.display = 'block';
+        
+        // Auto sync saat kembali online
+        if (!isOnline) {
+          syncPendingSubmissions();
+        }
+        isOnline = true;
+        
+        // Hide status setelah 3 detik jika online
+        setTimeout(() => {
+          if (navigator.onLine && getPendingSubmissions().length === 0) {
+            statusEl.style.display = 'none';
+          }
+        }, 3000);
+      } else {
+        statusEl.textContent = '🔴 Offline - Data akan disimpan lokal';
+        statusEl.className = 'offline-status';
+        statusEl.style.display = 'block';
+        isOnline = false;
+      }
+      
+      updatePendingCounter();
+    }
+
+    // Update counter pending submissions
+    function updatePendingCounter() {
+      const pendingSubmissions = getPendingSubmissions();
+      const pendingEl = document.getElementById('pendingCounter');
+      const countEl = document.getElementById('pendingCount');
+      const syncBtn = document.getElementById('manualSyncBtn');
+      
+      if (pendingSubmissions.length > 0) {
+        countEl.textContent = pendingSubmissions.length;
+        pendingEl.style.display = 'block';
+        if (syncBtn) syncBtn.style.display = 'inline-block';
+      } else {
+        pendingEl.style.display = 'none';
+        if (syncBtn) syncBtn.style.display = 'none';
+      }
+    }
+
+    // Manual sync function
+    function manualSync() {
+      if (navigator.onLine) {
+        syncPendingSubmissions();
+      } else {
+        showToast('❌ Tidak ada koneksi internet', false);
+      }
+    }
+
+    // Simpan form data ke localStorage
+    function saveFormDataLocally(formData) {
+      const dataObj = {};
+      for (let [key, value] of formData.entries()) {
+        dataObj[key] = value;
+      }
+      
+      dataObj._saveTime = Date.now();
+      dataObj._id = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      localStorage.setItem('ltt_form_data', JSON.stringify(dataObj));
+      return dataObj;
+    }
+
+    // Load form data dari localStorage
+    function loadFormDataLocally() {
+      return JSON.parse(localStorage.getItem('ltt_form_data') || '{}');
+    }
+
+    // Auto-save form setiap input berubah
+    function setupAutoSave() {
+      const form = document.getElementById('monitoringForm');
+      const inputs = form.querySelectorAll('input, select');
+      
+      inputs.forEach(input => {
+        input.addEventListener('input', () => {
+          clearTimeout(autoSaveTimeout);
+          autoSaveTimeout = setTimeout(() => {
+            const formData = new FormData(form);
+            saveFormDataLocally(formData);
+            showAutoSaveIndicator();
+          }, 1000);
+        });
+      });
+    }
+
+    // Tampilkan indikator auto-save
+    function showAutoSaveIndicator() {
+      const indicator = document.getElementById('autoSaveIndicator');
+      indicator.style.display = 'block';
+      indicator.innerHTML = '💾 Data tersimpan otomatis pada: ' + new Date().toLocaleTimeString();
+      
+      setTimeout(() => {
+        indicator.style.display = 'none';
+      }, 3000);
+    }
+
+    // Simpan submission ke queue offline
+    function saveSubmissionToQueue(formData) {
+      const pendingSubmissions = getPendingSubmissions();
+      
+      const dataObj = {};
+      for (let [key, value] of formData.entries()) {
+        dataObj[key] = value;
+      }
+      
+      dataObj._submissionTime = Date.now();
+      dataObj._id = 'pending_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      pendingSubmissions.push(dataObj);
+      localStorage.setItem('ltt_pending_submissions', JSON.stringify(pendingSubmissions));
+      
+      updatePendingCounter();
+      return dataObj._id;
+    }
+
+    // Get pending submissions
+    function getPendingSubmissions() {
+      return JSON.parse(localStorage.getItem('ltt_pending_submissions') || '[]');
+    }
+
+    // Sinkronisasi pending submissions
+    async function syncPendingSubmissions() {
+      const pendingSubmissions = getPendingSubmissions();
+      if (pendingSubmissions.length === 0) return;
+      
+      const statusEl = document.getElementById('offlineStatus');
+      statusEl.textContent = '🔄 Menyinkronkan ' + pendingSubmissions.length + ' data...';
+      statusEl.className = 'offline-status syncing';
+      statusEl.style.display = 'block';
+      
+      let successCount = 0;
+      const totalCount = pendingSubmissions.length;
+      
+      for (let i = 0; i < pendingSubmissions.length; i++) {
+        const submission = pendingSubmissions[i];
+        const formData = new FormData();
+        
+        for (let key in submission) {
+          if (!key.startsWith('_')) {
+            formData.append(key, submission[key]);
+          }
+        }
+        
+        try {
+          const response = await fetch(scriptURL, {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (response.ok) {
+            successCount++;
+            pendingSubmissions.splice(i, 1);
+            i--;
+            localStorage.setItem('ltt_pending_submissions', JSON.stringify(pendingSubmissions));
+            updatePendingCounter();
+          }
+        } catch (error) {
+          console.log('Sync failed for submission:', submission._id);
+        }
+        
+        statusEl.textContent = `🔄 Sinkronisasi ${successCount}/${totalCount}...`;
+      }
+      
+      if (successCount > 0) {
+        showToast(`✅ ${successCount} data berhasil disinkronkan`, true);
+        loadData();
+      }
+      
+      if (pendingSubmissions.length === 0) {
+        statusEl.textContent = '🟢 Semua data tersinkronkan';
+        setTimeout(() => {
+          if (navigator.onLine) {
+            statusEl.style.display = 'none';
+          }
+        }, 3000);
+      }
+      
+      updatePendingCounter();
+    }
+
+    // Load saved form data saat halaman dimuat
+    function restoreFormData() {
+      const savedData = loadFormDataLocally();
+      if (Object.keys(savedData).length === 0) return;
+      
+      const form = document.getElementById('monitoringForm');
+      
+      for (let key in savedData) {
+        if (!key.startsWith('_')) {
+          const input = form.querySelector(`[name="${key}"]`);
+          if (input) {
+            input.value = savedData[key];
+            
+            if (input.tagName === 'SELECT') {
+              input.dispatchEvent(new Event('change'));
+            }
+          }
+        }
+      }
+      
+      showToast('📋 Data form sebelumnya telah dipulihkan', true);
+    }
+
+    // Event listeners untuk monitoring koneksi
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+
+    // ============ TABLE FUNCTIONALITY ============
+
+    function renderTablePage(page) {
+      const tableHead = document.getElementById("tableHead");
+      const tableBody = document.querySelector("#historyTable tbody");
+      currentPage = page;
+      tableBody.innerHTML = '';
+      
+      // Buat header dengan kolom ke-3 sticky
+      tableHead.innerHTML = '<tr>' + defaultHeaders.map((h, i) => 
+        `<th class="${i === 2 ? 'sticky-col-3' : ''}">${h}</th>`
+      ).join('') + '</tr>';
+
+      const start = (page - 1) * perPage;
+      const end = start + perPage;
+      const pageData = allData.slice(start, end);
+
+      // Buat baris data
+      pageData.forEach(row => {
+        const tr = document.createElement("tr");
+        row.forEach((cell, i) => {
+          const td = document.createElement("td");
+          if (i === 2) td.classList.add("sticky-col-3");
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+      });
+
+      // Pagination
+      const pagination = document.getElementById("pagination");
+      pagination.innerHTML = '';
+      const totalPages = Math.ceil(allData.length / perPage);
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === page) btn.classList.add("active");
+        btn.onclick = () => renderTablePage(i);
+        pagination.appendChild(btn);
+      }
+    }
+
+    function loadData() {
+      // Check auth before loading data
+      if (!LTTAuth.isLoggedIn()) {
+        LTTAuth.logout();
+        return;
+      }
+
+      fetch(scriptURL + '?read=1')
+        .then(res => res.json())
+        .then(data => {
+          originalData = data.slice(1).reverse();
+          allData = [...originalData];
+          renderTablePage(1);
+        })
+        .catch(error => {
+          console.log('Error loading data:', error);
+          showToast('⚠️ Gagal memuat data dari server', false);
+        });
+    }
+
+    function exportTableToExcel(filename = 'data_ltt_ltp.xls') {
+      // Check auth before export
+      if (!LTTAuth.isLoggedIn()) {
+        LTTAuth.logout();
+        return;
+      }
+
+      const table = document.getElementById("historyTable");
+      const html = table.outerHTML;
+      const url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+    }
+
+    function showLoading() {
+      document.getElementById("loadingOverlay").style.display = "flex";
+    }
+
+    function hideLoading() {
+      document.getElementById("loadingOverlay").style.display = "none";
+    }
+
+    function showToast(message, success = true) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.style.background = success ? "#2ecc71" : "#e74c3c";
+      toast.style.display = "block";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 3000);
+    }
+
+    
+
+    // ============ FORM SUBMISSION ============
+
+    // Form submission dengan offline support dan auth check
+    document.getElementById("monitoringForm").addEventListener('submit', async e => {
+  e.preventDefault();
+  
+  // Check auth before submit
+  if (!LTTAuth.isLoggedIn()) {
+    LTTAuth.logout();
+    return;
+  }
+
+      const form = e.target;
+      const submitButton = form.querySelector("button[type='submit']");
+      const formData = new FormData(form);
+
+      // Format timestamp
+      const rawTimestamp = formData.get("Timestamp");
+      if (rawTimestamp) {
+        const dt = new Date(rawTimestamp);
+        const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:00`;
+        formData.set("Timestamp", formatted);
+      }
+
+      // Disable submit button
+      submitButton.disabled = true;
+      
+      if (!navigator.onLine) {
+        // Offline: simpan ke queue
+        const submissionId = saveSubmissionToQueue(formData);
+        showToast("📱 Offline: Data disimpan lokal dan akan dikirim otomatis saat online", true);
+        form.reset();
+        localStorage.removeItem('ltt_form_data');
+        submitButton.disabled = false;
+        return;
+      }
+
+      // Online: coba kirim langsung
+      showLoading();
+      
+      try {
+        const response = await fetch(scriptURL, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          showToast("✅ Data berhasil dikirim", true);
+          form.reset();
+          localStorage.removeItem('ltt_form_data');
+          loadData();
+          document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
+        } else {
+          throw new Error('Server error');
+        }
+      } catch (error) {
+        // Jika gagal kirim online, simpan ke queue offline
+        const submissionId = saveSubmissionToQueue(formData);
+        showToast("⚠️ Koneksi bermasalah. Data disimpan lokal dan akan dikirim otomatis saat koneksi stabil", false);
+        form.reset();
+        localStorage.removeItem('ltt_form_data');
+      } finally {
+        hideLoading();
+        submitButton.disabled = false;
+      }
+    });
+
+    // Search filter
+    document.getElementById("searchInput").addEventListener("input", function () {
+      const keyword = this.value.toLowerCase();
+      allData = originalData.filter(row => row.join(' ').toLowerCase().includes(keyword));
+      renderTablePage(1);
+    });
+
+    
+
+    // ============ KECAMATAN & DESA DATA ============
+
+    // Data kecamatan dan desa
+    const desaPerKecamatan = {
+      "Selakau": ["Bentunai", "Gayung Bersambut", "Kuala", "Pangkalan Bemban", "Parit Baru (Selakau)", "Parit Kongsi", "Semelagi Besar", "Sungai Daun", "Sungai Nyirih (Selakau)", "Sungai Rusa", "Twi Mentibar"],
+      "Selakau Timur": ["Gelik", "Seranggam", "Selakau Tua", "Buduk Sempadang"],
+      "Salatiga": ["Sungai Toman", "Serumpun", "Serunai", "Salatiga", "Parit Baru (Salatiga)"],
+      "Pemangkat": ["Gugah Sejahtera", "Harapan", "Jelutung", "Lonam", "Pemangkat Kota", "Penjajab", "Perapakan", "Sebatuan"],
+      "Semparuk": ["Seburing", "Semparuk", "Singaraya", "Sepinggan", "Sepadu (Semparuk)"],
+      "Tebas": ["Sejiram", "Batu Makjage", "Bekut", "Bukit Sigoler", "Dungun Perapakan", "Makrampai", "Maktangguk", "Maribas", "Matang Labong", "Mekar Sekuntum", "Mensere", "Pangkalan Kongsi", "Pusaka", "Seberkat", "Segarau Parit", "Segedong", "Sempalai", "Seret Ayon", "Tebas Kuala", "Tebas Sungai", "Sungai Kelambu", "Serindang", "Serumpun Buluh"],
+      "Tekarang": ["Cepala", "Matang Segarau", "Merubung", "Rambayan", "Tekarang", "Sempadian", "Sari Makmur"],
+      "Jawai": ["Bakau", "Dungun Laut", "Lambau", "Mutus Darussalam", "Parit Setia", "Pelimpaan", "Sarang Burung Kuala", "Sarang Burung Kolam", "Sarang Burung Danau", "Sarang Burung Usrat", "Sentebang", "Sungai Nilam", "Sungai Nyirih (Jawai)"],
+      "Jawai Selatan": ["Jawai Laut", "Jelu Air", "Matang Terap", "Sabaran", "Sarilaba A", "Sarilaba B", "Semperiuk A", "Semperiuk B", "Suah Api"],
+      "Sebawi": ["Sebangun", "Sebawi", "Semanjang", "Sempalai Sebedang", "Sepuk Tanjung", "Tebing Batu", "Tempatan"],
+      "Sambas": ["Dalam Kaum", "Durian", "Gapura", "Jagur", "Kartiasa", "Lorong", "Lubuk Dagang", "Lumbang", "Pasar Melayu", "Pendawan", "Saing Rambi", "Sebayan", "Semangau", "Sumber Harapan", "Sungai Rambah", "Tanjung Bugis", "Tanjung Mekar", "Tumuk Manggis"],
+      "Subah": ["Balai Gemuruh", "Sungai Sapak", "Sabung", "Madak", "Tebuah Elok", "Bukit Mulya", "Sungai Deden", "Sempurna", "Mukti Raharja", "Mensade", "Arga Pura", "Sapak Hulu Trans", "Karaban Jaya"],
+      "Sejangkung": ["Parit Raja", "Penakalan", "Perigi Landu", "Perigi Limus", "Piantus", "Sekuduk", "Semanga", "Sendoyan", "Senujuh", "Sepantai", "Setalik", "Sulung"],
+      "Sajad": ["Jirak", "Tengguli", "Mekar Jaya", "Beringin"],
+      "Galing": ["Galing", "Ratu Sepudak", "Sagu", "Sungai Palah", "Tempapan Kuala", "Tempapan Hulu", "Tri Kembang", "Sijang", "Teluk Pandan", "Tri Gadu"],
+      "Sajingan Besar": ["Kaliau", "Sebunga", "Santaban", "Sanatab", "Sungai Bening"],
+      "Teluk Keramat": ["Sungai Kumpai", "Sekura", "Tri Mandayan", "Pedada", "Lela", "Puringan", "Berlimang", "Sungai Baru", "Sengawang", "Teluk Kaseh", "Sepadu (Teluk Keramat)", "Tambatan", "Kubangga", "Sungai Serabek", "Sayang Sedayu", "Pipit Teja", "Matang Segantar", "Mulia", "Teluk Kembang", "Samustida", "Tanjung Kerucut", "Sebagu", "Mekar Sekuntum", "Kuala Pangkalan Keramat", "Sabing"],
+      "Tangaran": ["Arung Medang", "Arung Parak", "Merabuan", "Merpati", "Pancur", "Semata", "Simpang Empat", "Tangaran"],
+      "Paloh": ["Kalimantan", "Matang Danau", "Tanah Hitam", "Malek", "Nibung", "Sebubus", "Temajuk", "Mentibar"]
+    };
+
+    const kecamatanSelect = document.getElementById("kecamatanSelect");
+    const desaSelect = document.getElementById("desaSelect");
+
+    // Populate kecamatan options
+    function populateKecamatan() {
+      kecamatanSelect.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
+      for (let kecamatan in desaPerKecamatan) {
+        const option = document.createElement("option");
+        option.value = kecamatan;
+        option.textContent = kecamatan;
+        kecamatanSelect.appendChild(option);
+      }
+    }
+
+    // Update desa options based on selected kecamatan
+    kecamatanSelect.addEventListener("change", function () {
+      const desaList = desaPerKecamatan[this.value] || [];
+      desaSelect.innerHTML = '<option value="">-- Pilih Desa --</option>';
+      desaList.forEach(desa => {
+        const option = document.createElement("option");
+        option.value = desa;
+        option.textContent = desa;
+        desaSelect.appendChild(option);
+      });
+    });
+
+    // ============ INITIALIZATION ============
+
+    // Initialize app
+    function initializeApp() {
+      console.log('Initializing app...');
+      
+      if (!checkAuthentication()) {
+        return; // Stop initialization if not authenticated
+      }
+      
+      // Initialize components
+      populateKecamatan();
+      loadData();
+      
+      // Setup offline functionality
+      updateConnectionStatus();
+      setupAutoSave();
+      
+      // Restore form data jika ada
+      setTimeout(() => {
+        restoreFormData();
+      }, 1000);
+      
+      // Auto-sync setiap 30 detik jika online
+      setInterval(() => {
+        if (navigator.onLine && getPendingSubmissions().length > 0) {
+          syncPendingSubmissions();
+        }
+      }, 30000);
+      
+      console.log('App initialized successfully');
+    }
+
+    // Init Smart Wizard dengan error handling
+    function initSmartWizard() {
+      try {
+        if (typeof $ !== 'undefined' && $.fn && $.fn.smartWizard) {
+          $('#smartwizard').smartWizard({
+            theme: 'dots',
+            autoAdjustHeight: true,
+            toolbarSettings: {
+              toolbarPosition: 'bottom',
+              showNextButton: true,
+              showPreviousButton: true
+            }
+          });
+          console.log('SmartWizard initialized successfully');
+        } else {
+          console.log('SmartWizard not available, form will work without step navigation');
+          // SmartWizard tidak tersedia, tapi form tetap bisa digunakan
+          document.querySelectorAll('.tab-pane').forEach((pane, index) => {
+            if (index === 0) pane.style.display = 'block';
+            else pane.style.display = 'none';
+          });
+        }
+      } catch (error) {
+        console.log('SmartWizard initialization failed:', error);
+        // Fallback: tampilkan semua step
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+          pane.style.display = 'block';
+        });
+      }
+      
+      // Initialize app regardless
+      initializeApp();
+    }
+
+    // Check auth sebelum DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+      // Quick auth check to show protection immediately if needed
+      if (!LTTAuth.isLoggedIn()) {
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+        return;
+      }
+    });
+
+    // jQuery ready dengan fallback
+    $(document).ready(function () {
+      initSmartWizard();
+    });
+
+    // Fallback jika jQuery tidak ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+          if (typeof $ === 'undefined') {
+            console.log('jQuery not available, initializing without SmartWizard');
+            initializeApp();
+          }
+        }, 1000);
+      });
+    } else {
+      setTimeout(() => {
+        if (typeof $ === 'undefined') {
+          console.log('jQuery not available, initializing without SmartWizard');
+          initializeApp();
+        }
+      }, 1000);
+    }
+
+    // Handle page visibility change (untuk session monitoring)
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        // Page visible again, check session
+        if (!LTTAuth.isLoggedIn()) {
+          LTTAuth.logout();
+        }
+      }
+    });
+
+    // Handle beforeunload (warn about unsaved data)
+    window.addEventListener('beforeunload', function(e) {
+      const formData = loadFormDataLocally();
+      if (Object.keys(formData).length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+        return 'Ada data form yang belum tersimpan. Yakin ingin meninggalkan halaman?';
+      }
+    });
+
+    // Cleanup intervals saat page unload
+    window.addEventListener('unload', function() {
+      if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+      }
+      if (sessionWarningInterval) {
+        clearInterval(sessionWarningInterval);
+      }
+    });
+
+    // Make LTTAuth available globally untuk debugging
+    window.LTTAuth = LTTAuth;
+  </script>
+</body>
+</html>
