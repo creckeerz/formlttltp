@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pengaturan Bulan Input - LTT & LTP</title>
+  <title>Pengaturan Bulan Input - Admin Only</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -63,6 +63,28 @@
 
     .content {
       padding: 40px;
+    }
+
+    .warning-banner {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      color: #856404;
+      text-align: center;
+    }
+
+    .warning-banner.error {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+
+    .warning-banner.success {
+      background: #d4edda;
+      border-color: #c3e6cb;
+      color: #155724;
     }
 
     .admin-section {
@@ -196,6 +218,12 @@
       box-shadow: 0 8px 25px rgba(0,0,0,0.15);
     }
 
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .btn-primary {
       background: linear-gradient(135deg, #3498db, #2980b9);
       color: white;
@@ -273,72 +301,51 @@
       border-color: #3498db;
     }
 
-    .preview-section {
-      background: #f8f9fa;
-      padding: 25px;
-      border-radius: 12px;
-      border: 2px solid #e9ecef;
-    }
-
-    .timestamp-demo {
-      background: white;
+    .loading {
+      text-align: center;
       padding: 20px;
-      border-radius: 8px;
-      border: 1px solid #dee2e6;
-      margin-top: 15px;
+      color: #6c757d;
     }
 
-    .timestamp-demo input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-message, .success-message {
+      padding: 12px;
       border-radius: 6px;
+      margin-top: 10px;
       font-size: 14px;
-      box-sizing: border-box;
-      transition: border-color 0.3s ease;
-    }
-
-    .timestamp-demo input:invalid {
-      border-color: #dc3545;
-    }
-
-    .timestamp-demo input:valid {
-      border-color: #28a745;
+      display: none;
+      animation: slideIn 0.3s ease-out;
     }
 
     .error-message {
       background: #f8d7da;
       color: #721c24;
-      padding: 12px;
-      border-radius: 6px;
-      margin-top: 10px;
-      font-size: 14px;
-      display: none;
       border-left: 4px solid #dc3545;
-      animation: slideIn 0.3s ease-out;
     }
 
     .success-message {
       background: #d1edff;
       color: #0c5460;
-      padding: 12px;
-      border-radius: 6px;
-      margin-top: 10px;
-      font-size: 14px;
-      display: none;
       border-left: 4px solid #17a2b8;
-      animation: slideIn 0.3s ease-out;
     }
 
     @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .stats-section {
@@ -377,69 +384,12 @@
       letter-spacing: 0.5px;
     }
 
-    .admin-codes-hint {
-      background: #e8f5e8;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 10px;
-      font-size: 13px;
-      color: #155724;
-    }
-
     @media (max-width: 768px) {
-      .content {
-        padding: 20px;
-      }
-      
-      .month-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 10px;
-      }
-      
-      .controls {
-        flex-direction: column;
-      }
-      
-      .btn {
-        justify-content: center;
-      }
-
-      .back-button {
-        position: static;
-        margin-bottom: 15px;
-      }
-    }
-
-    .help-section {
-      background: #f8f9fa;
-      padding: 20px;
-      border-radius: 12px;
-      border: 2px solid #e9ecef;
-      margin-bottom: 20px;
-    }
-
-    .help-section details {
-      margin-bottom: 15px;
-    }
-
-    .help-section summary {
-      cursor: pointer;
-      font-weight: 600;
-      color: #2c3e50;
-      padding: 10px;
-      background: white;
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-
-    .help-section summary:hover {
-      background: #e9ecef;
-    }
-
-    .help-content {
-      padding: 10px;
-      color: #6c757d;
-      line-height: 1.6;
+      .content { padding: 20px; }
+      .month-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+      .controls { flex-direction: column; }
+      .btn { justify-content: center; }
+      .back-button { position: static; margin-bottom: 15px; }
     }
   </style>
 </head>
@@ -447,39 +397,35 @@
   <div class="container">
     <div class="header">
       <button class="back-button" onclick="goBack()">← Kembali</button>
-      <h1>🗓️ Pengaturan Bulan Input</h1>
-      <p>Sistem Pengaturan Bulan yang Diizinkan untuk Input Timestamp</p>
+      <h1>🔐 Pengaturan Bulan Input - Admin Only</h1>
+      <p>Sistem Pengaturan Bulan yang Diizinkan untuk Input Timestamp (Terpusat)</p>
     </div>
 
     <div class="content">
-      <!-- Stats Section -->
-      <div class="stats-section">
-        <h3>📊 Statistik Pengaturan</h3>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-number" id="enabledCount">0</div>
-            <div class="stat-label">Bulan Aktif</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="currentMonthStatus">❌</div>
-            <div class="stat-label">Bulan Ini</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="lastUpdateTime">-</div>
-            <div class="stat-label">Terakhir Diubah</div>
-          </div>
-        </div>
+      <div class="warning-banner">
+        <strong>⚠️ PENTING:</strong> Halaman ini hanya untuk Administrator. Pengaturan berlaku untuk semua user.
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="loading">
+        <div class="spinner"></div>
+        <p>Memuat pengaturan bulan...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="errorState" class="warning-banner error" style="display: none;">
+        <strong>❌ Error:</strong> <span id="errorMessage"></span>
+        <br><br>
+        <button class="btn btn-primary" onclick="location.reload()">🔄 Muat Ulang</button>
       </div>
 
       <!-- Admin Login Section -->
-      <div id="adminLogin" class="admin-login">
+      <div id="adminLogin" class="admin-login" style="display: none;">
         <h3>🔐 Login Administrator</h3>
+        <p>Masukkan kode administrator untuk mengakses pengaturan bulan:</p>
         <div class="form-group">
           <label for="adminCode">Kode Administrator:</label>
           <input type="password" id="adminCode" placeholder="Masukkan kode admin">
-          <div class="admin-codes-hint">
-            💡 Kode admin tersedia: ADMIN2025, MONTH_ADMIN, SUPERVISOR
-          </div>
         </div>
         <button class="btn btn-primary" onclick="adminLogin()">
           🔓 Login Admin
@@ -489,6 +435,25 @@
 
       <!-- Admin Panel -->
       <div id="adminPanel" style="display: none;">
+        <!-- Stats Section -->
+        <div class="stats-section">
+          <h3>📊 Statistik Pengaturan</h3>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-number" id="enabledCount">0</div>
+              <div class="stat-label">Bulan Aktif</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="currentMonthStatus">❌</div>
+              <div class="stat-label">Bulan Ini</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="lastUpdateTime">-</div>
+              <div class="stat-label">Terakhir Diubah</div>
+            </div>
+          </div>
+        </div>
+
         <div class="admin-section unlocked">
           <div class="section-title">
             <span>⚙️</span>
@@ -520,11 +485,8 @@
           </div>
 
           <div class="controls">
-            <button class="btn btn-success" onclick="saveSettings()">
+            <button class="btn btn-success" onclick="saveSettings()" id="saveBtn">
               💾 Simpan Pengaturan
-            </button>
-            <button class="btn btn-primary" onclick="testTimestamp()">
-              🧪 Test Timestamp
             </button>
             <button class="btn btn-primary" onclick="exportSettings()">
               📤 Export Pengaturan
@@ -536,87 +498,17 @@
 
           <div id="saveMessage" class="success-message"></div>
         </div>
-
-        <!-- Preview Section -->
-        <div class="preview-section">
-          <h3>👁️ Preview Input Timestamp</h3>
-          <p>Ini adalah preview bagaimana input timestamp akan terlihat untuk user:</p>
-          
-          <div class="timestamp-demo">
-            <label>Timestamp (Mode Admin):</label>
-            <input type="datetime-local" id="timestampPreview">
-            <div id="timestampError" class="error-message">
-              ❌ Bulan yang dipilih tidak diizinkan untuk input data!
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- User View Section -->
-      <div id="userView">
-        <div class="admin-section locked">
-          <div class="section-title">
-            <span>👤</span>
-            <span>Tampilan User</span>
-          </div>
-          
-          <div class="status-info warning">
-            <strong>Info:</strong> Hanya bulan tertentu yang diizinkan untuk input data.
-            <br><strong>Bulan Aktif:</strong> <span id="userAllowedMonths">Loading...</span>
-          </div>
-
-          <div class="timestamp-demo">
-            <label>Timestamp Input (Mode User):</label>
-            <input type="datetime-local" id="userTimestamp">
-            <div id="userTimestampError" class="error-message">
-              ❌ Bulan yang dipilih tidak diizinkan untuk input data!
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Help Section -->
-      <div class="help-section">
-        <h3>❓ Bantuan</h3>
-        <details>
-          <summary>🔧 Cara Menggunakan</summary>
-          <div class="help-content">
-            <p>1. Login menggunakan kode administrator</p>
-            <p>2. Pilih bulan yang ingin diizinkan dengan mengklik card bulan</p>
-            <p>3. Gunakan tombol shortcut untuk pengaturan cepat</p>
-            <p>4. Klik "Simpan Pengaturan" untuk menyimpan perubahan</p>
-          </div>
-        </details>
-        <details>
-          <summary>🔑 Kode Administrator</summary>
-          <div class="help-content">
-            <p>Kode admin tersedia: <code>ADMIN2025</code>, <code>MONTH_ADMIN</code>, <code>SUPERVISOR</code></p>
-            <p>Sesi admin berlaku selama 24 jam</p>
-          </div>
-        </details>
-        <details>
-          <summary>📋 Fitur Tambahan</summary>
-          <div class="help-content">
-            <p><strong>Export Pengaturan:</strong> Unduh konfigurasi sebagai file JSON</p>
-            <p><strong>Test Timestamp:</strong> Uji validasi dengan bulan yang dikunci</p>
-            <p><strong>Preview Mode:</strong> Lihat bagaimana user akan melihat input timestamp</p>
-          </div>
-        </details>
       </div>
     </div>
   </div>
 
   <script>
-    /**
-     * MONTH LOCK SYSTEM - Enhanced Version
-     * Sistem untuk mengatur bulan mana saja yang diizinkan untuk input
-     */
-
-    const MONTH_LOCK_CONFIG = {
-      ADMIN_CODES: ['ADMIN2025', 'MONTH_ADMIN', 'SUPERVISOR'],
-      STORAGE_KEY: 'ltt_month_settings',
+    // ============ CONFIGURATION ============
+    const CONFIG = {
+      GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzEopPS-bHiRVbW2hNOEoxA7b66V00KNriCsmqM_hlWzKEVsflEtpRRX6i8KhzdFkBSiw/exec',
+      ADMIN_CODES: ['ADMIN2025', 'MONTH_ADMIN', 'SUPERVISOR', 'ADMIN123'],
       ADMIN_SESSION_KEY: 'ltt_admin_session',
-      DEFAULT_ENABLED_MONTHS: [new Date().getMonth() + 1] // Default: bulan ini saja
+      ADMIN_SESSION_DURATION: 24 * 60 * 60 * 1000 // 24 hours
     };
 
     const MONTHS = [
@@ -634,631 +526,213 @@
       { id: 12, name: 'Desember', shortName: 'Des' }
     ];
 
+    // ============ STATE MANAGEMENT ============
+    let currentSettings = { enabled: [new Date().getMonth() + 1] };
     let isAdminLoggedIn = false;
-    let monthSettings = {};
+    let isLoading = false;
 
-    /**
-     * MONTH LOCK MANAGER - Enhanced Version
-     */
-    const MonthLockManager = {
-      
-      /**
-       * Initialize the system
-       */
-      init() {
-        this.loadSettings();
-        this.checkAdminSession();
-        this.generateMonthGrid();
-        this.updateUI();
-        this.updateStats();
-        this.setupEventListeners();
-        console.log('Month Lock System initialized');
-      },
-
-      /**
-       * Load month settings from localStorage
-       */
-      loadSettings() {
+    // ============ ADMIN AUTHENTICATION ============
+    function checkAdminSession() {
+      const session = localStorage.getItem(CONFIG.ADMIN_SESSION_KEY);
+      if (session) {
         try {
-          const saved = localStorage.getItem(MONTH_LOCK_CONFIG.STORAGE_KEY);
-          if (saved) {
-            monthSettings = JSON.parse(saved);
-          } else {
-            // Default: hanya bulan ini yang aktif
-            monthSettings = {
-              enabled: MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS,
-              lastUpdated: Date.now(),
-              updatedBy: 'system'
-            };
-            this.saveSettings();
-          }
-        } catch (error) {
-          console.error('Error loading settings:', error);
-          monthSettings = { 
-            enabled: MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS, 
-            lastUpdated: Date.now(),
-            updatedBy: 'system'
-          };
-        }
-      },
-
-      /**
-       * Save settings to localStorage
-       */
-      saveSettings() {
-        try {
-          monthSettings.lastUpdated = Date.now();
-          if (isAdminLoggedIn) {
-            const session = this.getAdminSession();
-            monthSettings.updatedBy = session ? session.code : 'admin';
-          }
-          localStorage.setItem(MONTH_LOCK_CONFIG.STORAGE_KEY, JSON.stringify(monthSettings));
-          console.log('Settings saved:', monthSettings);
-          this.updateStats();
-          return true;
-        } catch (error) {
-          console.error('Error saving settings:', error);
-          return false;
-        }
-      },
-
-      /**
-       * Get admin session
-       */
-      getAdminSession() {
-        const session = localStorage.getItem(MONTH_LOCK_CONFIG.ADMIN_SESSION_KEY);
-        if (session) {
-          try {
-            return JSON.parse(session);
-          } catch (error) {
-            return null;
-          }
-        }
-        return null;
-      },
-
-      /**
-       * Check if admin is logged in
-       */
-      checkAdminSession() {
-        const session = localStorage.getItem(MONTH_LOCK_CONFIG.ADMIN_SESSION_KEY);
-        if (session) {
-          try {
-            const sessionData = JSON.parse(session);
-            // Check if session is still valid (24 hours)
-            const isValid = Date.now() - sessionData.loginTime < 24 * 60 * 60 * 1000;
-            if (isValid) {
-              isAdminLoggedIn = true;
-            } else {
-              localStorage.removeItem(MONTH_LOCK_CONFIG.ADMIN_SESSION_KEY);
-            }
-          } catch (error) {
-            localStorage.removeItem(MONTH_LOCK_CONFIG.ADMIN_SESSION_KEY);
-          }
-        }
-      },
-
-      /**
-       * Admin login
-       */
-      adminLogin(code) {
-        if (MONTH_LOCK_CONFIG.ADMIN_CODES.includes(code.toUpperCase())) {
-          isAdminLoggedIn = true;
-          const sessionData = {
-            loginTime: Date.now(),
-            code: code.toUpperCase()
-          };
-          localStorage.setItem(MONTH_LOCK_CONFIG.ADMIN_SESSION_KEY, JSON.stringify(sessionData));
-          this.updateUI();
-          this.updateStats();
-          return true;
-        }
-        return false;
-      },
-
-      /**
-       * Admin logout
-       */
-      adminLogout() {
-        isAdminLoggedIn = false;
-        localStorage.removeItem(MONTH_LOCK_CONFIG.ADMIN_SESSION_KEY);
-        this.updateUI();
-      },
-
-      /**
-       * Check if month is enabled
-       */
-      isMonthEnabled(month) {
-        return monthSettings.enabled && monthSettings.enabled.includes(month);
-      },
-
-      /**
-       * Toggle month status
-       */
-      toggleMonth(monthId) {
-        if (!isAdminLoggedIn) return false;
-
-        if (!monthSettings.enabled) {
-          monthSettings.enabled = [];
-        }
-
-        const index = monthSettings.enabled.indexOf(monthId);
-        if (index > -1) {
-          monthSettings.enabled.splice(index, 1);
-        } else {
-          monthSettings.enabled.push(monthId);
-        }
-
-        this.updateMonthCard(monthId);
-        this.updateStatus();
-        this.updateStats();
-        return true;
-      },
-
-      /**
-       * Enable all months
-       */
-      enableAllMonths() {
-        if (!isAdminLoggedIn) return false;
-        monthSettings.enabled = MONTHS.map(m => m.id);
-        this.updateAllMonthCards();
-        this.updateStatus();
-        this.updateStats();
-        return true;
-      },
-
-      /**
-       * Disable all months
-       */
-      disableAllMonths() {
-        if (!isAdminLoggedIn) return false;
-        monthSettings.enabled = [];
-        this.updateAllMonthCards();
-        this.updateStatus();
-        this.updateStats();
-        return true;
-      },
-
-      /**
-       * Enable only current month
-       */
-      enableCurrentMonth() {
-        if (!isAdminLoggedIn) return false;
-        const currentMonth = new Date().getMonth() + 1;
-        monthSettings.enabled = [currentMonth];
-        this.updateAllMonthCards();
-        this.updateStatus();
-        this.updateStats();
-        return true;
-      },
-
-      /**
-       * Enable previous months (last 3 months including current)
-       */
-      enablePreviousMonths() {
-        if (!isAdminLoggedIn) return false;
-        const currentMonth = new Date().getMonth() + 1;
-        const enabledMonths = [];
-        
-        for (let i = 0; i < 3; i++) {
-          let month = currentMonth - i;
-          if (month <= 0) month += 12;
-          enabledMonths.push(month);
-        }
-        
-        monthSettings.enabled = enabledMonths;
-        this.updateAllMonthCards();
-        this.updateStatus();
-        this.updateStats();
-        return true;
-      },
-
-      /**
-       * Generate month grid
-       */
-      generateMonthGrid() {
-        const grid = document.getElementById('monthGrid');
-        if (!grid) return;
-
-        grid.innerHTML = '';
-        const currentMonth = new Date().getMonth() + 1;
-        
-        MONTHS.forEach(month => {
-          const card = document.createElement('div');
-          card.className = 'month-card';
-          card.id = `month-${month.id}`;
-          card.onclick = () => this.toggleMonth(month.id);
-          
-          // Add current month indicator
-          if (month.id === currentMonth) {
-            card.classList.add('current');
-          }
-          
-          card.innerHTML = `
-            <div class="toggle-icon" id="icon-${month.id}">🔒</div>
-            <div class="month-name">${month.name}</div>
-            <div class="month-status" id="status-${month.id}">Terkunci</div>
-          `;
-          
-          grid.appendChild(card);
-        });
-
-        this.updateAllMonthCards();
-      },
-
-      /**
-       * Update single month card
-       */
-      updateMonthCard(monthId) {
-        const card = document.getElementById(`month-${monthId}`);
-        const icon = document.getElementById(`icon-${monthId}`);
-        const status = document.getElementById(`status-${monthId}`);
-        
-        if (!card) return;
-
-        const isEnabled = this.isMonthEnabled(monthId);
-        const currentMonth = new Date().getMonth() + 1;
-        
-        card.className = 'month-card';
-        if (monthId === currentMonth) {
-          card.classList.add('current');
-        }
-        card.classList.add(isEnabled ? 'enabled' : 'disabled');
-        
-        icon.textContent = isEnabled ? '🔓' : '🔒';
-        status.textContent = isEnabled ? 'Terbuka' : 'Terkunci';
-        status.className = `month-status ${isEnabled ? 'enabled' : 'disabled'}`;
-      },
-
-      /**
-       * Update all month cards
-       */
-      updateAllMonthCards() {
-        MONTHS.forEach(month => {
-          this.updateMonthCard(month.id);
-        });
-      },
-
-      /**
-       * Update status display
-       */
-      updateStatus() {
-        const statusText = document.getElementById('statusText');
-        const userAllowedMonths = document.getElementById('userAllowedMonths');
-        
-        if (statusText) {
-          const enabledCount = monthSettings.enabled ? monthSettings.enabled.length : 0;
-          const enabledMonths = monthSettings.enabled ? 
-            monthSettings.enabled.map(id => MONTHS.find(m => m.id === id)?.shortName).join(', ') : 
-            'Tidak ada';
-          
-          statusText.innerHTML = `${enabledCount} bulan aktif (${enabledMonths})`;
-        }
-
-        if (userAllowedMonths) {
-          const enabledMonths = monthSettings.enabled ? 
-            monthSettings.enabled.map(id => MONTHS.find(m => m.id === id)?.name).join(', ') : 
-            'Tidak ada bulan yang diizinkan';
-          userAllowedMonths.textContent = enabledMonths;
-        }
-      },
-
-      /**
-       * Update statistics display
-       */
-      updateStats() {
-        const enabledCount = document.getElementById('enabledCount');
-        const currentMonthStatus = document.getElementById('currentMonthStatus');
-        const lastUpdateTime = document.getElementById('lastUpdateTime');
-        
-        if (enabledCount) {
-          const count = monthSettings.enabled ? monthSettings.enabled.length : 0;
-          enabledCount.textContent = count;
-        }
-        
-        if (currentMonthStatus) {
-          const currentMonth = new Date().getMonth() + 1;
-          const isCurrentEnabled = this.isMonthEnabled(currentMonth);
-          currentMonthStatus.textContent = isCurrentEnabled ? '✅' : '❌';
-        }
-        
-        if (lastUpdateTime) {
-          if (monthSettings.lastUpdated) {
-            const updateDate = new Date(monthSettings.lastUpdated);
-            const timeAgo = this.getTimeAgo(updateDate);
-            lastUpdateTime.textContent = timeAgo;
-          } else {
-            lastUpdateTime.textContent = '-';
-          }
-        }
-      },
-
-      /**
-       * Get time ago string
-       */
-      getTimeAgo(date) {
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
-        
-        if (diffMins < 1) return 'Baru saja';
-        if (diffMins < 60) return `${diffMins}m`;
-        if (diffHours < 24) return `${diffHours}h`;
-        if (diffDays < 7) return `${diffDays}d`;
-        return date.toLocaleDateString();
-      },
-
-      /**
-       * Update UI based on admin status
-       */
-      updateUI() {
-        const adminLogin = document.getElementById('adminLogin');
-        const adminPanel = document.getElementById('adminPanel');
-        const userView = document.getElementById('userView');
-
-        if (isAdminLoggedIn) {
-          if (adminLogin) adminLogin.style.display = 'none';
-          if (adminPanel) adminPanel.style.display = 'block';
-          if (userView) userView.style.display = 'block';
-        } else {
-          if (adminLogin) adminLogin.style.display = 'block';
-          if (adminPanel) adminPanel.style.display = 'none';
-          if (userView) userView.style.display = 'block';
-        }
-
-        this.updateStatus();
-      },
-
-      /**
-       * Setup event listeners
-       */
-      setupEventListeners() {
-        // Timestamp validation
-        const timestampPreview = document.getElementById('timestampPreview');
-        const userTimestamp = document.getElementById('userTimestamp');
-
-        if (timestampPreview) {
-          timestampPreview.addEventListener('change', (e) => {
-            this.validateTimestamp(e.target.value, 'timestampError');
-          });
-          timestampPreview.addEventListener('input', (e) => {
-            this.validateTimestamp(e.target.value, 'timestampError');
-          });
-        }
-
-        if (userTimestamp) {
-          userTimestamp.addEventListener('change', (e) => {
-            this.validateTimestamp(e.target.value, 'userTimestampError');
-          });
-          userTimestamp.addEventListener('input', (e) => {
-            this.validateTimestamp(e.target.value, 'userTimestampError');
-          });
-        }
-
-        // Admin code enter key
-        const adminCode = document.getElementById('adminCode');
-        if (adminCode) {
-          adminCode.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-              adminLogin();
-            }
-          });
-        }
-
-        // Auto-save when months are toggled
-        window.addEventListener('beforeunload', () => {
-          if (isAdminLoggedIn) {
-            this.saveSettings();
-          }
-        });
-      },
-
-      /**
-       * Validate timestamp input
-       */
-      validateTimestamp(value, errorElementId) {
-        const errorEl = document.getElementById(errorElementId);
-        if (!errorEl) return true;
-
-        if (!value) {
-          errorEl.style.display = 'none';
-          return true;
-        }
-
-        try {
-          const date = new Date(value);
-          const month = date.getMonth() + 1;
-          const monthName = MONTHS.find(m => m.id === month)?.name || 'Unknown';
-          const isValid = this.isMonthEnabled(month);
-
+          const sessionData = JSON.parse(session);
+          const isValid = Date.now() - sessionData.loginTime < CONFIG.ADMIN_SESSION_DURATION;
           if (isValid) {
-            errorEl.style.display = 'none';
-          } else {
-            errorEl.textContent = `❌ Bulan ${monthName} tidak diizinkan untuk input data!`;
-            errorEl.style.display = 'block';
-          }
-
-          return isValid;
-        } catch (error) {
-          errorEl.textContent = '❌ Format timestamp tidak valid!';
-          errorEl.style.display = 'block';
-          return false;
-        }
-      },
-
-      /**
-       * Export settings
-       */
-      exportSettings() {
-        const settings = {
-          ...monthSettings,
-          exportTime: new Date().toISOString(),
-          exportedBy: isAdminLoggedIn ? this.getAdminSession()?.code : 'unknown',
-          months: MONTHS.filter(m => this.isMonthEnabled(m.id)),
-          version: '1.0'
-        };
-
-        const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `month-settings-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-
-      /**
-       * Import settings (for future use)
-       */
-      importSettings(settingsData) {
-        if (!isAdminLoggedIn) return false;
-        
-        try {
-          if (settingsData.enabled && Array.isArray(settingsData.enabled)) {
-            monthSettings.enabled = settingsData.enabled;
-            this.saveSettings();
-            this.updateAllMonthCards();
-            this.updateStatus();
-            this.updateStats();
+            isAdminLoggedIn = true;
             return true;
+          } else {
+            localStorage.removeItem(CONFIG.ADMIN_SESSION_KEY);
           }
         } catch (error) {
-          console.error('Error importing settings:', error);
+          localStorage.removeItem(CONFIG.ADMIN_SESSION_KEY);
         }
-        return false;
-      },
-
-      /**
-       * Get validation function for use in main form
-       */
-      getValidationFunction() {
-        return (timestamp) => {
-          if (!timestamp) return { valid: true, message: '' };
-          
-          try {
-            const date = new Date(timestamp);
-            const month = date.getMonth() + 1;
-            const monthName = MONTHS.find(m => m.id === month)?.name || 'Unknown';
-            
-            if (this.isMonthEnabled(month)) {
-              return { valid: true, message: '' };
-            } else {
-              return { 
-                valid: false, 
-                message: `❌ Bulan ${monthName} tidak diizinkan untuk input data!` 
-              };
-            }
-          } catch (error) {
-            return { 
-              valid: false, 
-              message: '❌ Format timestamp tidak valid!' 
-            };
-          }
-        };
-      },
-
-      /**
-       * Get allowed months for display
-       */
-      getAllowedMonths() {
-        if (!monthSettings.enabled) return [];
-        return monthSettings.enabled.map(id => MONTHS.find(m => m.id === id)).filter(Boolean);
-      },
-
-      /**
-       * Get enabled months text
-       */
-      getEnabledMonthsText() {
-        const enabledMonths = monthSettings.enabled || [];
-        const monthNames = enabledMonths
-          .map(id => MONTHS.find(m => m.id === id)?.name)
-          .filter(Boolean)
-          .join(', ');
-        
-        return monthNames || 'Tidak ada bulan yang diizinkan';
       }
-    };
+      return false;
+    }
 
-    /**
-     * UI Functions
-     */
     function adminLogin() {
-      const code = document.getElementById('adminCode').value;
+      const code = document.getElementById('adminCode').value.trim();
       const errorEl = document.getElementById('loginError');
 
-      if (MonthLockManager.adminLogin(code)) {
+      if (!code) {
+        showError(errorEl, 'Kode administrator tidak boleh kosong');
+        return;
+      }
+
+      if (CONFIG.ADMIN_CODES.includes(code.toUpperCase())) {
+        isAdminLoggedIn = true;
+        const sessionData = {
+          loginTime: Date.now(),
+          code: code.toUpperCase()
+        };
+        localStorage.setItem(CONFIG.ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+        
         errorEl.style.display = 'none';
-        showMessage('saveMessage', '✅ Login admin berhasil!', 'success');
         document.getElementById('adminCode').value = '';
+        
+        showAdminPanel();
+        showMessage('saveMessage', '✅ Login admin berhasil!', 'success');
       } else {
-        errorEl.textContent = '❌ Kode administrator tidak valid';
-        errorEl.style.display = 'block';
+        showError(errorEl, 'Kode administrator tidak valid');
       }
     }
 
     function adminLogout() {
       if (confirm('Yakin ingin logout dari panel admin?')) {
-        MonthLockManager.adminLogout();
-        document.getElementById('adminCode').value = '';
+        isAdminLoggedIn = false;
+        localStorage.removeItem(CONFIG.ADMIN_SESSION_KEY);
+        showLoginPanel();
         showMessage('saveMessage', '👋 Logout berhasil!', 'success');
       }
     }
 
-    function enableAllMonths() {
-      MonthLockManager.enableAllMonths();
-      showMessage('saveMessage', '✅ Semua bulan berhasil dibuka!', 'success');
-    }
-
-    function disableAllMonths() {
-      if (confirm('Yakin ingin mengunci semua bulan?')) {
-        MonthLockManager.disableAllMonths();
-        showMessage('saveMessage', '🔒 Semua bulan berhasil dikunci!', 'success');
+    // ============ SERVER COMMUNICATION ============
+    async function loadSettingsFromServer() {
+      try {
+        setLoading(true);
+        
+        const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=getMonthSettings`);
+        
+        if (!response.ok) {
+          throw new Error('Server response not OK');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          currentSettings = data.settings || { enabled: [new Date().getMonth() + 1] };
+          console.log('Settings loaded from server:', currentSettings);
+        } else {
+          throw new Error(data.message || 'Failed to load settings');
+        }
+        
+      } catch (error) {
+        console.error('Error loading settings:', error);
+        showErrorState('Gagal memuat pengaturan dari server. Menggunakan pengaturan default.');
+        currentSettings = { enabled: [new Date().getMonth() + 1] };
+      } finally {
+        setLoading(false);
       }
     }
 
-    function enableCurrentMonth() {
-      MonthLockManager.enableCurrentMonth();
-      showMessage('saveMessage', '📅 Berhasil membuka bulan ini saja!', 'success');
-    }
+    async function saveSettingsToServer() {
+      if (!isAdminLoggedIn) {
+        showMessage('saveMessage', '❌ Anda harus login sebagai admin!', 'error');
+        return false;
+      }
 
-    function enablePreviousMonths() {
-      MonthLockManager.enablePreviousMonths();
-      showMessage('saveMessage', '📈 Berhasil membuka 3 bulan terakhir!', 'success');
-    }
+      try {
+        setLoading(true, 'Menyimpan pengaturan...');
+        
+        const session = JSON.parse(localStorage.getItem(CONFIG.ADMIN_SESSION_KEY));
+        const payload = {
+          action: 'saveMonthSettings',
+          settings: {
+            ...currentSettings,
+            lastUpdated: Date.now(),
+            updatedBy: session?.code || 'unknown'
+          }
+        };
 
-    function saveSettings() {
-      if (MonthLockManager.saveSettings()) {
-        showMessage('saveMessage', '💾 Pengaturan berhasil disimpan!', 'success');
-      } else {
-        showMessage('saveMessage', '❌ Gagal menyimpan pengaturan!', 'error');
+        const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error('Server response not OK');
+        }
+
+        const data = await response.json();
+        
+        if (data.success) {
+          showMessage('saveMessage', '✅ Pengaturan berhasil disimpan ke server!', 'success');
+          updateStats();
+          return true;
+        } else {
+          throw new Error(data.message || 'Failed to save settings');
+        }
+        
+      } catch (error) {
+        console.error('Error saving settings:', error);
+        showMessage('saveMessage', '❌ Gagal menyimpan pengaturan: ' + error.message, 'error');
+        return false;
+      } finally {
+        setLoading(false);
       }
     }
 
-    function exportSettings() {
-      MonthLockManager.exportSettings();
-      showMessage('saveMessage', '📤 Pengaturan berhasil diekspor!', 'success');
-    }
-
-    function testTimestamp() {
-      const preview = document.getElementById('timestampPreview');
-      const userInput = document.getElementById('userTimestamp');
+    // ============ UI MANAGEMENT ============
+    function setLoading(loading, message = 'Memuat...') {
+      isLoading = loading;
+      const loadingEl = document.getElementById('loadingState');
+      const adminLogin = document.getElementById('adminLogin');
+      const adminPanel = document.getElementById('adminPanel');
+      const saveBtn = document.getElementById('saveBtn');
       
-      // Set ke bulan yang tidak diizinkan untuk testing
-      const disabledMonth = MONTHS.find(m => !MonthLockManager.isMonthEnabled(m.id));
-      if (disabledMonth) {
-        const testDate = `2025-${String(disabledMonth.id).padStart(2, '0')}-15T10:00`;
-        preview.value = testDate;
-        userInput.value = testDate;
-        
-        MonthLockManager.validateTimestamp(testDate, 'timestampError');
-        MonthLockManager.validateTimestamp(testDate, 'userTimestampError');
-        
-        showMessage('saveMessage', `🧪 Test menggunakan ${disabledMonth.name} - lihat error yang muncul!`, 'success');
+      if (loading) {
+        loadingEl.style.display = 'block';
+        loadingEl.querySelector('p').textContent = message;
+        adminLogin.style.display = 'none';
+        adminPanel.style.display = 'none';
+        if (saveBtn) saveBtn.disabled = true;
       } else {
-        showMessage('saveMessage', '⚠️ Tidak ada bulan yang dikunci untuk testing!', 'warning');
+        loadingEl.style.display = 'none';
+        if (saveBtn) saveBtn.disabled = false;
+        showAppropriatePanel();
       }
+    }
+
+    function showAppropriatePanel() {
+      const adminLogin = document.getElementById('adminLogin');
+      const adminPanel = document.getElementById('adminPanel');
+      const errorState = document.getElementById('errorState');
+      
+      errorState.style.display = 'none';
+      
+      if (isAdminLoggedIn) {
+        showAdminPanel();
+      } else {
+        showLoginPanel();
+      }
+    }
+
+    function showLoginPanel() {
+      document.getElementById('adminLogin').style.display = 'block';
+      document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    function showAdminPanel() {
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      generateMonthGrid();
+      updateAllMonthCards();
+      updateStatus();
+      updateStats();
+    }
+
+    function showErrorState(message) {
+      const errorState = document.getElementById('errorState');
+      const errorMessage = document.getElementById('errorMessage');
+      
+      errorMessage.textContent = message;
+      errorState.style.display = 'block';
+      
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    function showError(element, message) {
+      element.textContent = message;
+      element.style.display = 'block';
+      
+      setTimeout(() => {
+        element.style.display = 'none';
+      }, 5000);
     }
 
     function showMessage(elementId, message, type = 'success') {
@@ -1274,78 +748,371 @@
       }, 5000);
     }
 
+    // ============ MONTH MANAGEMENT ============
+    function generateMonthGrid() {
+      const grid = document.getElementById('monthGrid');
+      if (!grid) return;
+
+      grid.innerHTML = '';
+      const currentMonth = new Date().getMonth() + 1;
+      
+      MONTHS.forEach(month => {
+        const card = document.createElement('div');
+        card.className = 'month-card';
+        card.id = `month-${month.id}`;
+        card.onclick = () => toggleMonth(month.id);
+        
+        if (month.id === currentMonth) {
+          card.classList.add('current');
+        }
+        
+        card.innerHTML = `
+          <div class="toggle-icon" id="icon-${month.id}">🔒</div>
+          <div class="month-name">${month.name}</div>
+          <div class="month-status" id="status-${month.id}">Terkunci</div>
+        `;
+        
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleMonth(monthId) {
+      if (!isAdminLoggedIn || isLoading) return;
+
+      if (!currentSettings.enabled) {
+        currentSettings.enabled = [];
+      }
+
+      const index = currentSettings.enabled.indexOf(monthId);
+      if (index > -1) {
+        currentSettings.enabled.splice(index, 1);
+      } else {
+        currentSettings.enabled.push(monthId);
+      }
+
+      updateMonthCard(monthId);
+      updateStatus();
+      updateStats();
+    }
+
+    function updateMonthCard(monthId) {
+      const card = document.getElementById(`month-${monthId}`);
+      const icon = document.getElementById(`icon-${monthId}`);
+      const status = document.getElementById(`status-${monthId}`);
+      
+      if (!card) return;
+
+      const isEnabled = currentSettings.enabled && currentSettings.enabled.includes(monthId);
+      const currentMonth = new Date().getMonth() + 1;
+      
+      card.className = 'month-card';
+      if (monthId === currentMonth) {
+        card.classList.add('current');
+      }
+      card.classList.add(isEnabled ? 'enabled' : 'disabled');
+      
+      icon.textContent = isEnabled ? '🔓' : '🔒';
+      status.textContent = isEnabled ? 'Terbuka' : 'Terkunci';
+      status.className = `month-status ${isEnabled ? 'enabled' : 'disabled'}`;
+    }
+
+    function updateAllMonthCards() {
+      MONTHS.forEach(month => {
+        updateMonthCard(month.id);
+      });
+    }
+
+    function updateStatus() {
+      const statusText = document.getElementById('statusText');
+      
+      if (statusText) {
+        const enabledCount = currentSettings.enabled ? currentSettings.enabled.length : 0;
+        const enabledMonths = currentSettings.enabled ? 
+          currentSettings.enabled.map(id => MONTHS.find(m => m.id === id)?.shortName).join(', ') : 
+          'Tidak ada';
+        
+        statusText.innerHTML = `${enabledCount} bulan aktif (${enabledMonths})`;
+      }
+    }
+
+    function updateStats() {
+      const enabledCount = document.getElementById('enabledCount');
+      const currentMonthStatus = document.getElementById('currentMonthStatus');
+      const lastUpdateTime = document.getElementById('lastUpdateTime');
+      
+      if (enabledCount) {
+        const count = currentSettings.enabled ? currentSettings.enabled.length : 0;
+        enabledCount.textContent = count;
+      }
+      
+      if (currentMonthStatus) {
+        const currentMonth = new Date().getMonth() + 1;
+        const isCurrentEnabled = currentSettings.enabled && currentSettings.enabled.includes(currentMonth);
+        currentMonthStatus.textContent = isCurrentEnabled ? '✅' : '❌';
+      }
+      
+      if (lastUpdateTime) {
+        if (currentSettings.lastUpdated) {
+          const updateDate = new Date(currentSettings.lastUpdated);
+          const timeAgo = getTimeAgo(updateDate);
+          lastUpdateTime.textContent = timeAgo;
+        } else {
+          lastUpdateTime.textContent = '-';
+        }
+      }
+    }
+
+    function getTimeAgo(date) {
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+      
+      if (diffMins < 1) return 'Baru saja';
+      if (diffMins < 60) return `${diffMins}m yang lalu`;
+      if (diffHours < 24) return `${diffHours}h yang lalu`;
+      if (diffDays < 7) return `${diffDays}d yang lalu`;
+      return date.toLocaleDateString();
+    }
+
+    // ============ QUICK ACTIONS ============
+    function enableAllMonths() {
+      if (!isAdminLoggedIn || isLoading) return;
+      
+      currentSettings.enabled = MONTHS.map(m => m.id);
+      updateAllMonthCards();
+      updateStatus();
+      updateStats();
+      showMessage('saveMessage', '✅ Semua bulan berhasil dibuka!', 'success');
+    }
+
+    function disableAllMonths() {
+      if (!isAdminLoggedIn || isLoading) return;
+      
+      if (confirm('Yakin ingin mengunci semua bulan?')) {
+        currentSettings.enabled = [];
+        updateAllMonthCards();
+        updateStatus();
+        updateStats();
+        showMessage('saveMessage', '🔒 Semua bulan berhasil dikunci!', 'success');
+      }
+    }
+
+    function enableCurrentMonth() {
+      if (!isAdminLoggedIn || isLoading) return;
+      
+      const currentMonth = new Date().getMonth() + 1;
+      currentSettings.enabled = [currentMonth];
+      updateAllMonthCards();
+      updateStatus();
+      updateStats();
+      showMessage('saveMessage', '📅 Berhasil membuka bulan ini saja!', 'success');
+    }
+
+    function enablePreviousMonths() {
+      if (!isAdminLoggedIn || isLoading) return;
+      
+      const currentMonth = new Date().getMonth() + 1;
+      const enabledMonths = [];
+      
+      for (let i = 0; i < 3; i++) {
+        let month = currentMonth - i;
+        if (month <= 0) month += 12;
+        enabledMonths.push(month);
+      }
+      
+      currentSettings.enabled = enabledMonths;
+      updateAllMonthCards();
+      updateStatus();
+      updateStats();
+      showMessage('saveMessage', '📈 Berhasil membuka 3 bulan terakhir!', 'success');
+    }
+
+    // ============ SAVE/EXPORT FUNCTIONS ============
+    async function saveSettings() {
+      const success = await saveSettingsToServer();
+      if (success) {
+        // Additional success actions if needed
+      }
+    }
+
+    function exportSettings() {
+      const session = JSON.parse(localStorage.getItem(CONFIG.ADMIN_SESSION_KEY) || '{}');
+      const settings = {
+        ...currentSettings,
+        exportTime: new Date().toISOString(),
+        exportedBy: session.code || 'unknown',
+        months: MONTHS.filter(m => currentSettings.enabled && currentSettings.enabled.includes(m.id)),
+        version: '2.0',
+        serverBased: true
+      };
+
+      const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `month-settings-server-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showMessage('saveMessage', '📤 Pengaturan berhasil diekspor!', 'success');
+    }
+
+    // ============ UTILITY FUNCTIONS ============
     function goBack() {
-      // Try to go back to the previous page
       if (document.referrer) {
         window.history.back();
       } else {
-        // If no referrer, try to go to index.html
         window.location.href = 'index.html';
       }
     }
 
-    // Initialize system when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      MonthLockManager.init();
-      console.log('Month Lock System ready');
+    // ============ INITIALIZATION ============
+    async function initializeApp() {
+      console.log('Initializing Month Settings Admin Panel...');
       
-      // Auto-update stats every 30 seconds
-      setInterval(() => {
-        MonthLockManager.updateStats();
-      }, 30000);
+      // Check admin session first
+      checkAdminSession();
+      
+      // Load settings from server
+      await loadSettingsFromServer();
+      
+      // Show appropriate panel
+      showAppropriatePanel();
+      
+      // Setup event listeners
+      setupEventListeners();
+      
+      console.log('Month Settings Admin Panel initialized');
+    }
+
+    function setupEventListeners() {
+      // Admin code enter key
+      const adminCode = document.getElementById('adminCode');
+      if (adminCode) {
+        adminCode.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            adminLogin();
+          }
+        });
+      }
+
+      // Auto-save when months are toggled (with debounce)
+      let autoSaveTimeout;
+      const originalToggleMonth = toggleMonth;
+      toggleMonth = function(monthId) {
+        originalToggleMonth(monthId);
+        
+        // Auto-save after 2 seconds of no changes
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+          if (isAdminLoggedIn) {
+            console.log('Auto-saving settings...');
+            saveSettings();
+          }
+        }, 2000);
+      };
+
+      // Page visibility change
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && isAdminLoggedIn) {
+          // Page visible again, reload settings to check for updates
+          loadSettingsFromServer().then(() => {
+            updateAllMonthCards();
+            updateStatus();
+            updateStats();
+          });
+        }
+      });
+
+      // Before unload warning
+      window.addEventListener('beforeunload', function(e) {
+        if (isAdminLoggedIn) {
+          // Auto-save before leaving
+          saveSettings();
+        }
+      });
+    }
+
+    // ============ MAIN INITIALIZATION ============
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeApp();
     });
 
-    // Make MonthLockManager globally available for debugging
-    window.MonthLockManager = MonthLockManager;
-    
-    // Debug helper functions
-    window.MonthDebug = {
+    // ============ GLOBAL DEBUG FUNCTIONS ============
+    window.MonthAdminDebug = {
       getCurrentSettings: () => {
-        console.log('Current settings:', monthSettings);
-        return monthSettings;
+        console.log('Current server settings:', currentSettings);
+        return currentSettings;
       },
       
-      testTimestamp: (timestamp) => {
-        const validation = MonthLockManager.getValidationFunction()(timestamp);
-        console.log(`Testing ${timestamp}:`, validation);
-        return validation;
+      forceReload: async () => {
+        console.log('Force reloading settings from server...');
+        await loadSettingsFromServer();
+        if (isAdminLoggedIn) {
+          updateAllMonthCards();
+          updateStatus();
+          updateStats();
+        }
+        console.log('Settings reloaded');
       },
       
-      simulateMonthChange: (months) => {
+      forceSave: async () => {
+        console.log('Force saving settings to server...');
+        const result = await saveSettingsToServer();
+        console.log('Save result:', result);
+        return result;
+      },
+      
+      simulateSettings: (months) => {
         if (!Array.isArray(months)) {
-          console.error('Months must be an array');
+          console.error('Months must be an array of numbers (1-12)');
           return;
         }
         
-        monthSettings.enabled = months;
-        MonthLockManager.saveSettings();
-        MonthLockManager.updateAllMonthCards();
-        MonthLockManager.updateStatus();
-        MonthLockManager.updateStats();
-        console.log('Month settings updated to:', months);
+        console.log('Simulating settings:', months);
+        currentSettings.enabled = months;
+        if (isAdminLoggedIn) {
+          updateAllMonthCards();
+          updateStatus();
+          updateStats();
+        }
       },
       
-      exportDebugInfo: () => {
-        const debugInfo = {
-          settings: monthSettings,
-          isAdminLoggedIn: isAdminLoggedIn,
-          currentMonth: new Date().getMonth() + 1,
-          adminSession: MonthLockManager.getAdminSession(),
-          timestamp: new Date().toISOString()
-        };
-        
-        console.log('Debug info:', debugInfo);
-        return debugInfo;
+      checkServerConnection: async () => {
+        try {
+          const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=ping`);
+          const data = await response.json();
+          console.log('Server connection:', data);
+          return data;
+        } catch (error) {
+          console.error('Server connection failed:', error);
+          return { success: false, error: error.message };
+        }
+      },
+      
+      getAdminSession: () => {
+        const session = localStorage.getItem(CONFIG.ADMIN_SESSION_KEY);
+        if (session) {
+          try {
+            return JSON.parse(session);
+          } catch {
+            return null;
+          }
+        }
+        return null;
       }
     };
 
-    console.log('=== MONTH LOCK SYSTEM DEBUG ===');
-    console.log('Available commands:');
-    console.log('MonthDebug.getCurrentSettings() - Lihat pengaturan saat ini');
-    console.log('MonthDebug.testTimestamp("2025-03-15T10:00") - Test validasi timestamp');
-    console.log('MonthDebug.simulateMonthChange([1,2,3]) - Simulasi perubahan bulan');
-    console.log('MonthDebug.exportDebugInfo() - Export info debug');
-    console.log('MonthLockManager.getEnabledMonthsText() - Lihat teks bulan aktif');
+    console.log('=== MONTH SETTINGS ADMIN PANEL (SERVER-BASED) ===');
+    console.log('Available debug commands:');
+    console.log('MonthAdminDebug.getCurrentSettings() - Lihat pengaturan saat ini');
+    console.log('MonthAdminDebug.forceReload() - Muat ulang dari server');
+    console.log('MonthAdminDebug.forceSave() - Paksa simpan ke server');
+    console.log('MonthAdminDebug.simulateSettings([1,2,3]) - Simulasi pengaturan');
+    console.log('MonthAdminDebug.checkServerConnection() - Test koneksi server');
+    console.log('MonthAdminDebug.getAdminSession() - Lihat sesi admin');
   </script>
 </body>
 </html>
