@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Form Monitoring LTT & LTP</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .login-header {
+      margin-bottom: 30px;
+    }
+
+    .login-header h1 {
+      color: #2c3e50;
+      margin: 0 0 10px 0;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .login-header p {
+      color: #7f8c8d;
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      border-radius: 50%;
+      margin: 0 auto 20px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: white;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #2c3e50;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #ecf0f1;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .login-btn:hover {
+      background: linear-gradient(135deg, #2980b9, #3498db);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    .login-btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .error-message {
+      background: #e74c3c;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .success-message {
+      background: #2ecc71;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .loading {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .loading-spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .footer-text {
+      margin-top: 30px;
+      color: #95a5a6;
+      font-size: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 30px 20px;
+        margin: 10px;
+      }
+      
+      .login-header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">🌾</div>
+    
+    <div class="login-header">
+      <h1>Form Monitoring LTT & LTP</h1>
+      <p>Sistem Monitoring Luas Tambah Tanam dan Luas Tambah Panen</p>
+    </div>
+
+    <div id="errorMessage" class="error-message"></div>
+    <div id="successMessage" class="success-message"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="accessCode">Kode Akses</label>
+        <input type="password" id="accessCode" name="accessCode" placeholder="Masukkan kode akses" required>
+      </div>
+
+      <button type="submit" class="login-btn" id="loginBtn">
+        🔐 Masuk ke Sistem
+      </button>
+
+      <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <p>Memverifikasi kode akses...</p>
+      </div>
+    </form>
+
+    <div class="footer-text">
+      Dinas Pertanian dan Ketahanan Pangan<br>
+      Kabupaten Sambas
+    </div>
+  </div>
+
+  <script>
+    // Konfigurasi kode akses yang valid
+    const VALID_ACCESS_CODES = [
+      'SAMBAS2025',
+      'LTT2025',
+      'PENYULUH2025',
+      'ADMIN123'
+    ];
+
+    // Session configuration
+    const SESSION_KEY = 'ltt_session';
+    const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 jam dalam milliseconds
+
+    // Check if user is already logged in
+    function checkExistingSession() {
+      const session = localStorage.getItem(SESSION_KEY);
+      
+      if (session) {
+        try {
+          const sessionData = JSON.parse(session);
+          const currentTime = Date.now();
+          
+          // Check if session is still valid
+          if (sessionData.expiresAt && currentTime < sessionData.expiresAt) {
+            // Session valid, redirect to main page
+            redirectToMainPage();
+            return true;
+          } else {
+            // Session expired, remove it
+            localStorage.removeItem(SESSION_KEY);
+          }
+        } catch (error) {
+          // Invalid session data, remove it
+          localStorage.removeItem(SESSION_KEY);
+        }
+      }
+      
+      return false;
+    }
+
+    // Create new session
+    function createSession(accessCode) {
+      const sessionData = {
+        accessCode: accessCode,
+        loginTime: Date.now(),
+        expiresAt: Date.now() + SESSION_DURATION,
+        userAgent: navigator.userAgent
+      };
+      
+      localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+    }
+
+    // Redirect to main page
+    function redirectToMainPage() {
+      // In a real implementation, you would redirect to index.html
+      // For demo purposes, we'll show a success message
+      showSuccessMessage('Login berhasil! Mengalihkan ke halaman utama...', () => {
+        // window.location.href = 'index.html';
+        alert('Dalam implementasi nyata, Anda akan diarahkan ke index.html');
+      });
+    }
+
+    // Show error message
+    function showErrorMessage(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      
+      // Hide after 5 seconds
+      setTimeout(() => {
+        errorEl.style.display = 'none';
+      }, 5000);
+    }
+
+    // Show success message
+    function showSuccessMessage(message, callback) {
+      const successEl = document.getElementById('successMessage');
+      successEl.textContent = message;
+      successEl.style.display = 'block';
+      
+      if (callback) {
+        setTimeout(callback, 2000);
+      }
+    }
+
+    // Show/hide loading
+    function setLoading(show) {
+      const loadingEl = document.getElementById('loading');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      if (show) {
+        loadingEl.style.display = 'block';
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Memverifikasi...';
+      } else {
+        loadingEl.style.display = 'none';
+        loginBtn.disabled = false;
+        loginBtn.textContent = '🔐 Masuk ke Sistem';
+      }
+    }
+
+    // Validate access code
+    function validateAccessCode(code) {
+      return VALID_ACCESS_CODES.includes(code.toUpperCase());
+    }
+
+    // Handle form submission
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const accessCode = document.getElementById('accessCode').value.trim();
+      
+      if (!accessCode) {
+        showErrorMessage('Silakan masukkan kode akses');
+        return;
+      }
+
+      setLoading(true);
+
+      // Simulate network delay
+      setTimeout(() => {
+        if (validateAccessCode(accessCode)) {
+          createSession(accessCode.toUpperCase());
+          setLoading(false);
+          redirectToMainPage();
+        } else {
+          setLoading(false);
+          showErrorMessage('Kode akses tidak valid. Silakan hubungi administrator.');
+          document.getElementById('accessCode').value = '';
+          document.getElementById('accessCode').focus();
+        }
+      }, 1500);
+    });
+
+    // Auto-focus on access code input
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check existing session first
+      if (!checkExistingSession()) {
+        document.getElementById('accessCode').focus();
+      }
+    });
+
+    // Handle Enter key
+    document.getElementById('accessCode').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+      }
+    });
+
+    // Clear error messages when user starts typing
+    document.getElementById('accessCode').addEventListener('input', function() {
+      const errorEl = document.getElementById('errorMessage');
+      if (errorEl.style.display === 'block') {
+        errorEl.style.display = 'none';
+      }
+    });
+
+    // Session management functions (untuk digunakan di halaman lain)
+    window.LTTAuth = {
+      isLoggedIn: function() {
+        const session = localStorage.getItem(SESSION_KEY);
+        if (!session) return false;
+        
+        try {
+          const sessionData = JSON.parse(session);
+          return Date.now() < sessionData.expiresAt;
+        } catch {
+          return false;
+        }
+      },
+      
+      logout: function() {
+        localStorage.removeItem(SESSION_KEY);
+        window.location.href = 'login.html';
+      },
+      
+      requireAuth: function() {
+        if (!this.isLoggedIn()) {
+          window.location.href = 'login.html';
+          return false;
+        }
+        return true;
+      },
+      
+      getSession: function() {
+        const session = localStorage.getItem(SESSION_KEY);
+        if (!session) return null;
+        
+        try {
+          return JSON.parse(session);
+        } catch {
+          return null;
+        }
+      }
+    };
+  </script>
+</body>
+</html>
