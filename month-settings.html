@@ -27,6 +27,7 @@
       color: white;
       padding: 30px;
       text-align: center;
+      position: relative;
     }
 
     .header h1 {
@@ -39,6 +40,25 @@
       margin: 10px 0 0 0;
       opacity: 0.9;
       font-size: 16px;
+    }
+
+    .back-button {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
     }
 
     .content {
@@ -105,6 +125,19 @@
     .month-card:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .month-card.current {
+      border-color: #f39c12;
+      background: linear-gradient(135deg, #fff3cd, #fafafa);
+    }
+
+    .month-card.current::before {
+      content: "📅";
+      position: absolute;
+      top: 5px;
+      left: 10px;
+      font-size: 14px;
     }
 
     .month-name {
@@ -183,6 +216,11 @@
       color: white;
     }
 
+    .btn-info {
+      background: linear-gradient(135deg, #17a2b8, #138496);
+      color: white;
+    }
+
     .status-info {
       background: #e8f5e8;
       border-left: 4px solid #2ecc71;
@@ -194,6 +232,11 @@
     .status-info.warning {
       background: #fff3cd;
       border-left-color: #f39c12;
+    }
+
+    .status-info.info {
+      background: #d1ecf1;
+      border-left-color: #17a2b8;
     }
 
     .admin-login {
@@ -252,6 +295,15 @@
       border-radius: 6px;
       font-size: 14px;
       box-sizing: border-box;
+      transition: border-color 0.3s ease;
+    }
+
+    .timestamp-demo input:invalid {
+      border-color: #dc3545;
+    }
+
+    .timestamp-demo input:valid {
+      border-color: #28a745;
     }
 
     .error-message {
@@ -262,6 +314,8 @@
       margin-top: 10px;
       font-size: 14px;
       display: none;
+      border-left: 4px solid #dc3545;
+      animation: slideIn 0.3s ease-out;
     }
 
     .success-message {
@@ -272,6 +326,64 @@
       margin-top: 10px;
       font-size: 14px;
       display: none;
+      border-left: 4px solid #17a2b8;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .stats-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #e9ecef;
+      margin-bottom: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid #dee2e6;
+    }
+
+    .stat-number {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .admin-codes-hint {
+      background: #e8f5e8;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #155724;
     }
 
     @media (max-width: 768px) {
@@ -291,23 +403,83 @@
       .btn {
         justify-content: center;
       }
+
+      .back-button {
+        position: static;
+        margin-bottom: 15px;
+      }
+    }
+
+    .help-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #e9ecef;
+      margin-bottom: 20px;
+    }
+
+    .help-section details {
+      margin-bottom: 15px;
+    }
+
+    .help-section summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #2c3e50;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .help-section summary:hover {
+      background: #e9ecef;
+    }
+
+    .help-content {
+      padding: 10px;
+      color: #6c757d;
+      line-height: 1.6;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <button class="back-button" onclick="goBack()">← Kembali</button>
       <h1>🗓️ Pengaturan Bulan Input</h1>
       <p>Sistem Pengaturan Bulan yang Diizinkan untuk Input Timestamp</p>
     </div>
 
     <div class="content">
+      <!-- Stats Section -->
+      <div class="stats-section">
+        <h3>📊 Statistik Pengaturan</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="enabledCount">0</div>
+            <div class="stat-label">Bulan Aktif</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="currentMonthStatus">❌</div>
+            <div class="stat-label">Bulan Ini</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="lastUpdateTime">-</div>
+            <div class="stat-label">Terakhir Diubah</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Admin Login Section -->
       <div id="adminLogin" class="admin-login">
         <h3>🔐 Login Administrator</h3>
         <div class="form-group">
           <label for="adminCode">Kode Administrator:</label>
           <input type="password" id="adminCode" placeholder="Masukkan kode admin">
+          <div class="admin-codes-hint">
+            💡 Kode admin tersedia: ADMIN2025, MONTH_ADMIN, SUPERVISOR
+          </div>
         </div>
         <button class="btn btn-primary" onclick="adminLogin()">
           🔓 Login Admin
@@ -323,7 +495,7 @@
             <span>Panel Administrator</span>
           </div>
 
-          <div class="status-info" id="currentStatus">
+          <div class="status-info info" id="currentStatus">
             <strong>Status:</strong> <span id="statusText">Loading...</span>
           </div>
 
@@ -337,8 +509,8 @@
             <button class="btn btn-warning" onclick="enableCurrentMonth()">
               📅 Buka Bulan Ini Saja
             </button>
-            <button class="btn btn-primary" onclick="exportSettings()">
-              📤 Export Pengaturan
+            <button class="btn btn-info" onclick="enablePreviousMonths()">
+              📈 Buka 3 Bulan Terakhir
             </button>
           </div>
 
@@ -354,6 +526,9 @@
             <button class="btn btn-primary" onclick="testTimestamp()">
               🧪 Test Timestamp
             </button>
+            <button class="btn btn-primary" onclick="exportSettings()">
+              📤 Export Pengaturan
+            </button>
             <button class="btn btn-danger" onclick="adminLogout()">
               🚪 Logout Admin
             </button>
@@ -368,10 +543,10 @@
           <p>Ini adalah preview bagaimana input timestamp akan terlihat untuk user:</p>
           
           <div class="timestamp-demo">
-            <label>Timestamp (Mode User):</label>
+            <label>Timestamp (Mode Admin):</label>
             <input type="datetime-local" id="timestampPreview">
             <div id="timestampError" class="error-message">
-              ⚠️ Bulan yang dipilih tidak diizinkan untuk input data!
+              ❌ Bulan yang dipilih tidak diizinkan untuk input data!
             </div>
           </div>
         </div>
@@ -391,27 +566,57 @@
           </div>
 
           <div class="timestamp-demo">
-            <label>Timestamp Input:</label>
+            <label>Timestamp Input (Mode User):</label>
             <input type="datetime-local" id="userTimestamp">
             <div id="userTimestampError" class="error-message">
-              ⚠️ Bulan yang dipilih tidak diizinkan untuk input data!
+              ❌ Bulan yang dipilih tidak diizinkan untuk input data!
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="help-section">
+        <h3>❓ Bantuan</h3>
+        <details>
+          <summary>🔧 Cara Menggunakan</summary>
+          <div class="help-content">
+            <p>1. Login menggunakan kode administrator</p>
+            <p>2. Pilih bulan yang ingin diizinkan dengan mengklik card bulan</p>
+            <p>3. Gunakan tombol shortcut untuk pengaturan cepat</p>
+            <p>4. Klik "Simpan Pengaturan" untuk menyimpan perubahan</p>
+          </div>
+        </details>
+        <details>
+          <summary>🔑 Kode Administrator</summary>
+          <div class="help-content">
+            <p>Kode admin tersedia: <code>ADMIN2025</code>, <code>MONTH_ADMIN</code>, <code>SUPERVISOR</code></p>
+            <p>Sesi admin berlaku selama 24 jam</p>
+          </div>
+        </details>
+        <details>
+          <summary>📋 Fitur Tambahan</summary>
+          <div class="help-content">
+            <p><strong>Export Pengaturan:</strong> Unduh konfigurasi sebagai file JSON</p>
+            <p><strong>Test Timestamp:</strong> Uji validasi dengan bulan yang dikunci</p>
+            <p><strong>Preview Mode:</strong> Lihat bagaimana user akan melihat input timestamp</p>
+          </div>
+        </details>
       </div>
     </div>
   </div>
 
   <script>
     /**
-     * MONTH LOCK SYSTEM
+     * MONTH LOCK SYSTEM - Enhanced Version
      * Sistem untuk mengatur bulan mana saja yang diizinkan untuk input
      */
 
     const MONTH_LOCK_CONFIG = {
       ADMIN_CODES: ['ADMIN2025', 'MONTH_ADMIN', 'SUPERVISOR'],
       STORAGE_KEY: 'ltt_month_settings',
-      ADMIN_SESSION_KEY: 'ltt_admin_session'
+      ADMIN_SESSION_KEY: 'ltt_admin_session',
+      DEFAULT_ENABLED_MONTHS: [new Date().getMonth() + 1] // Default: bulan ini saja
     };
 
     const MONTHS = [
@@ -433,7 +638,7 @@
     let monthSettings = {};
 
     /**
-     * MONTH LOCK MANAGER
+     * MONTH LOCK MANAGER - Enhanced Version
      */
     const MonthLockManager = {
       
@@ -445,6 +650,7 @@
         this.checkAdminSession();
         this.generateMonthGrid();
         this.updateUI();
+        this.updateStats();
         this.setupEventListeners();
         console.log('Month Lock System initialized');
       },
@@ -459,9 +665,8 @@
             monthSettings = JSON.parse(saved);
           } else {
             // Default: hanya bulan ini yang aktif
-            const currentMonth = new Date().getMonth() + 1;
             monthSettings = {
-              enabled: [currentMonth],
+              enabled: MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS,
               lastUpdated: Date.now(),
               updatedBy: 'system'
             };
@@ -469,7 +674,11 @@
           }
         } catch (error) {
           console.error('Error loading settings:', error);
-          monthSettings = { enabled: [new Date().getMonth() + 1], lastUpdated: Date.now() };
+          monthSettings = { 
+            enabled: MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS, 
+            lastUpdated: Date.now(),
+            updatedBy: 'system'
+          };
         }
       },
 
@@ -479,13 +688,33 @@
       saveSettings() {
         try {
           monthSettings.lastUpdated = Date.now();
+          if (isAdminLoggedIn) {
+            const session = this.getAdminSession();
+            monthSettings.updatedBy = session ? session.code : 'admin';
+          }
           localStorage.setItem(MONTH_LOCK_CONFIG.STORAGE_KEY, JSON.stringify(monthSettings));
           console.log('Settings saved:', monthSettings);
+          this.updateStats();
           return true;
         } catch (error) {
           console.error('Error saving settings:', error);
           return false;
         }
+      },
+
+      /**
+       * Get admin session
+       */
+      getAdminSession() {
+        const session = localStorage.getItem(MONTH_LOCK_CONFIG.ADMIN_SESSION_KEY);
+        if (session) {
+          try {
+            return JSON.parse(session);
+          } catch (error) {
+            return null;
+          }
+        }
+        return null;
       },
 
       /**
@@ -521,6 +750,7 @@
           };
           localStorage.setItem(MONTH_LOCK_CONFIG.ADMIN_SESSION_KEY, JSON.stringify(sessionData));
           this.updateUI();
+          this.updateStats();
           return true;
         }
         return false;
@@ -561,6 +791,7 @@
 
         this.updateMonthCard(monthId);
         this.updateStatus();
+        this.updateStats();
         return true;
       },
 
@@ -572,6 +803,7 @@
         monthSettings.enabled = MONTHS.map(m => m.id);
         this.updateAllMonthCards();
         this.updateStatus();
+        this.updateStats();
         return true;
       },
 
@@ -583,6 +815,7 @@
         monthSettings.enabled = [];
         this.updateAllMonthCards();
         this.updateStatus();
+        this.updateStats();
         return true;
       },
 
@@ -595,6 +828,28 @@
         monthSettings.enabled = [currentMonth];
         this.updateAllMonthCards();
         this.updateStatus();
+        this.updateStats();
+        return true;
+      },
+
+      /**
+       * Enable previous months (last 3 months including current)
+       */
+      enablePreviousMonths() {
+        if (!isAdminLoggedIn) return false;
+        const currentMonth = new Date().getMonth() + 1;
+        const enabledMonths = [];
+        
+        for (let i = 0; i < 3; i++) {
+          let month = currentMonth - i;
+          if (month <= 0) month += 12;
+          enabledMonths.push(month);
+        }
+        
+        monthSettings.enabled = enabledMonths;
+        this.updateAllMonthCards();
+        this.updateStatus();
+        this.updateStats();
         return true;
       },
 
@@ -606,12 +861,18 @@
         if (!grid) return;
 
         grid.innerHTML = '';
+        const currentMonth = new Date().getMonth() + 1;
         
         MONTHS.forEach(month => {
           const card = document.createElement('div');
           card.className = 'month-card';
           card.id = `month-${month.id}`;
           card.onclick = () => this.toggleMonth(month.id);
+          
+          // Add current month indicator
+          if (month.id === currentMonth) {
+            card.classList.add('current');
+          }
           
           card.innerHTML = `
             <div class="toggle-icon" id="icon-${month.id}">🔒</div>
@@ -636,8 +897,14 @@
         if (!card) return;
 
         const isEnabled = this.isMonthEnabled(monthId);
+        const currentMonth = new Date().getMonth() + 1;
         
-        card.className = `month-card ${isEnabled ? 'enabled' : 'disabled'}`;
+        card.className = 'month-card';
+        if (monthId === currentMonth) {
+          card.classList.add('current');
+        }
+        card.classList.add(isEnabled ? 'enabled' : 'disabled');
+        
         icon.textContent = isEnabled ? '🔓' : '🔒';
         status.textContent = isEnabled ? 'Terbuka' : 'Terkunci';
         status.className = `month-status ${isEnabled ? 'enabled' : 'disabled'}`;
@@ -677,6 +944,53 @@
       },
 
       /**
+       * Update statistics display
+       */
+      updateStats() {
+        const enabledCount = document.getElementById('enabledCount');
+        const currentMonthStatus = document.getElementById('currentMonthStatus');
+        const lastUpdateTime = document.getElementById('lastUpdateTime');
+        
+        if (enabledCount) {
+          const count = monthSettings.enabled ? monthSettings.enabled.length : 0;
+          enabledCount.textContent = count;
+        }
+        
+        if (currentMonthStatus) {
+          const currentMonth = new Date().getMonth() + 1;
+          const isCurrentEnabled = this.isMonthEnabled(currentMonth);
+          currentMonthStatus.textContent = isCurrentEnabled ? '✅' : '❌';
+        }
+        
+        if (lastUpdateTime) {
+          if (monthSettings.lastUpdated) {
+            const updateDate = new Date(monthSettings.lastUpdated);
+            const timeAgo = this.getTimeAgo(updateDate);
+            lastUpdateTime.textContent = timeAgo;
+          } else {
+            lastUpdateTime.textContent = '-';
+          }
+        }
+      },
+
+      /**
+       * Get time ago string
+       */
+      getTimeAgo(date) {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffMins < 1) return 'Baru saja';
+        if (diffMins < 60) return `${diffMins}m`;
+        if (diffHours < 24) return `${diffHours}h`;
+        if (diffDays < 7) return `${diffDays}d`;
+        return date.toLocaleDateString();
+      },
+
+      /**
        * Update UI based on admin status
        */
       updateUI() {
@@ -701,7 +1015,7 @@
        * Setup event listeners
        */
       setupEventListeners() {
-        // Timestamp preview validation
+        // Timestamp validation
         const timestampPreview = document.getElementById('timestampPreview');
         const userTimestamp = document.getElementById('userTimestamp');
 
@@ -709,10 +1023,16 @@
           timestampPreview.addEventListener('change', (e) => {
             this.validateTimestamp(e.target.value, 'timestampError');
           });
+          timestampPreview.addEventListener('input', (e) => {
+            this.validateTimestamp(e.target.value, 'timestampError');
+          });
         }
 
         if (userTimestamp) {
           userTimestamp.addEventListener('change', (e) => {
+            this.validateTimestamp(e.target.value, 'userTimestampError');
+          });
+          userTimestamp.addEventListener('input', (e) => {
             this.validateTimestamp(e.target.value, 'userTimestampError');
           });
         }
@@ -726,6 +1046,13 @@
             }
           });
         }
+
+        // Auto-save when months are toggled
+        window.addEventListener('beforeunload', () => {
+          if (isAdminLoggedIn) {
+            this.saveSettings();
+          }
+        });
       },
 
       /**
@@ -740,17 +1067,25 @@
           return true;
         }
 
-        const date = new Date(value);
-        const month = date.getMonth() + 1;
-        const isValid = this.isMonthEnabled(month);
+        try {
+          const date = new Date(value);
+          const month = date.getMonth() + 1;
+          const monthName = MONTHS.find(m => m.id === month)?.name || 'Unknown';
+          const isValid = this.isMonthEnabled(month);
 
-        if (isValid) {
-          errorEl.style.display = 'none';
-        } else {
+          if (isValid) {
+            errorEl.style.display = 'none';
+          } else {
+            errorEl.textContent = `❌ Bulan ${monthName} tidak diizinkan untuk input data!`;
+            errorEl.style.display = 'block';
+          }
+
+          return isValid;
+        } catch (error) {
+          errorEl.textContent = '❌ Format timestamp tidak valid!';
           errorEl.style.display = 'block';
+          return false;
         }
-
-        return isValid;
       },
 
       /**
@@ -760,7 +1095,9 @@
         const settings = {
           ...monthSettings,
           exportTime: new Date().toISOString(),
-          months: MONTHS.filter(m => this.isMonthEnabled(m.id))
+          exportedBy: isAdminLoggedIn ? this.getAdminSession()?.code : 'unknown',
+          months: MONTHS.filter(m => this.isMonthEnabled(m.id)),
+          version: '1.0'
         };
 
         const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
@@ -773,14 +1110,52 @@
       },
 
       /**
+       * Import settings (for future use)
+       */
+      importSettings(settingsData) {
+        if (!isAdminLoggedIn) return false;
+        
+        try {
+          if (settingsData.enabled && Array.isArray(settingsData.enabled)) {
+            monthSettings.enabled = settingsData.enabled;
+            this.saveSettings();
+            this.updateAllMonthCards();
+            this.updateStatus();
+            this.updateStats();
+            return true;
+          }
+        } catch (error) {
+          console.error('Error importing settings:', error);
+        }
+        return false;
+      },
+
+      /**
        * Get validation function for use in main form
        */
       getValidationFunction() {
         return (timestamp) => {
-          if (!timestamp) return true;
-          const date = new Date(timestamp);
-          const month = date.getMonth() + 1;
-          return this.isMonthEnabled(month);
+          if (!timestamp) return { valid: true, message: '' };
+          
+          try {
+            const date = new Date(timestamp);
+            const month = date.getMonth() + 1;
+            const monthName = MONTHS.find(m => m.id === month)?.name || 'Unknown';
+            
+            if (this.isMonthEnabled(month)) {
+              return { valid: true, message: '' };
+            } else {
+              return { 
+                valid: false, 
+                message: `❌ Bulan ${monthName} tidak diizinkan untuk input data!` 
+              };
+            }
+          } catch (error) {
+            return { 
+              valid: false, 
+              message: '❌ Format timestamp tidak valid!' 
+            };
+          }
         };
       },
 
@@ -790,6 +1165,19 @@
       getAllowedMonths() {
         if (!monthSettings.enabled) return [];
         return monthSettings.enabled.map(id => MONTHS.find(m => m.id === id)).filter(Boolean);
+      },
+
+      /**
+       * Get enabled months text
+       */
+      getEnabledMonthsText() {
+        const enabledMonths = monthSettings.enabled || [];
+        const monthNames = enabledMonths
+          .map(id => MONTHS.find(m => m.id === id)?.name)
+          .filter(Boolean)
+          .join(', ');
+        
+        return monthNames || 'Tidak ada bulan yang diizinkan';
       }
     };
 
@@ -803,6 +1191,7 @@
       if (MonthLockManager.adminLogin(code)) {
         errorEl.style.display = 'none';
         showMessage('saveMessage', '✅ Login admin berhasil!', 'success');
+        document.getElementById('adminCode').value = '';
       } else {
         errorEl.textContent = '❌ Kode administrator tidak valid';
         errorEl.style.display = 'block';
@@ -813,6 +1202,7 @@
       if (confirm('Yakin ingin logout dari panel admin?')) {
         MonthLockManager.adminLogout();
         document.getElementById('adminCode').value = '';
+        showMessage('saveMessage', '👋 Logout berhasil!', 'success');
       }
     }
 
@@ -831,6 +1221,11 @@
     function enableCurrentMonth() {
       MonthLockManager.enableCurrentMonth();
       showMessage('saveMessage', '📅 Berhasil membuka bulan ini saja!', 'success');
+    }
+
+    function enablePreviousMonths() {
+      MonthLockManager.enablePreviousMonths();
+      showMessage('saveMessage', '📈 Berhasil membuka 3 bulan terakhir!', 'success');
     }
 
     function saveSettings() {
@@ -876,17 +1271,81 @@
 
       setTimeout(() => {
         el.style.display = 'none';
-      }, 3000);
+      }, 5000);
+    }
+
+    function goBack() {
+      // Try to go back to the previous page
+      if (document.referrer) {
+        window.history.back();
+      } else {
+        // If no referrer, try to go to index.html
+        window.location.href = 'index.html';
+      }
     }
 
     // Initialize system when page loads
     document.addEventListener('DOMContentLoaded', function() {
       MonthLockManager.init();
       console.log('Month Lock System ready');
+      
+      // Auto-update stats every 30 seconds
+      setInterval(() => {
+        MonthLockManager.updateStats();
+      }, 30000);
     });
 
-    // Make MonthLockManager globally available
+    // Make MonthLockManager globally available for debugging
     window.MonthLockManager = MonthLockManager;
+    
+    // Debug helper functions
+    window.MonthDebug = {
+      getCurrentSettings: () => {
+        console.log('Current settings:', monthSettings);
+        return monthSettings;
+      },
+      
+      testTimestamp: (timestamp) => {
+        const validation = MonthLockManager.getValidationFunction()(timestamp);
+        console.log(`Testing ${timestamp}:`, validation);
+        return validation;
+      },
+      
+      simulateMonthChange: (months) => {
+        if (!Array.isArray(months)) {
+          console.error('Months must be an array');
+          return;
+        }
+        
+        monthSettings.enabled = months;
+        MonthLockManager.saveSettings();
+        MonthLockManager.updateAllMonthCards();
+        MonthLockManager.updateStatus();
+        MonthLockManager.updateStats();
+        console.log('Month settings updated to:', months);
+      },
+      
+      exportDebugInfo: () => {
+        const debugInfo = {
+          settings: monthSettings,
+          isAdminLoggedIn: isAdminLoggedIn,
+          currentMonth: new Date().getMonth() + 1,
+          adminSession: MonthLockManager.getAdminSession(),
+          timestamp: new Date().toISOString()
+        };
+        
+        console.log('Debug info:', debugInfo);
+        return debugInfo;
+      }
+    };
+
+    console.log('=== MONTH LOCK SYSTEM DEBUG ===');
+    console.log('Available commands:');
+    console.log('MonthDebug.getCurrentSettings() - Lihat pengaturan saat ini');
+    console.log('MonthDebug.testTimestamp("2025-03-15T10:00") - Test validasi timestamp');
+    console.log('MonthDebug.simulateMonthChange([1,2,3]) - Simulasi perubahan bulan');
+    console.log('MonthDebug.exportDebugInfo() - Export info debug');
+    console.log('MonthLockManager.getEnabledMonthsText() - Lihat teks bulan aktif');
   </script>
 </body>
 </html>
