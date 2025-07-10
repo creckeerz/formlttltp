@@ -734,9 +734,10 @@
     // ============ SERVER-BASED MONTH VALIDATION SYSTEM ============
 
     const CONFIG = {
-      GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwRVKBrYXL5H1jEJRJmktNLa2GGRSTb0f0p1ddp5Y-AffEp7bmo6LVno-BW6pIYMKKgMw/exec',
+      GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzEopPS-bHiRVbW2hNOEoxA7b66V00KNriCsmqM_hlWzKEVsflEtpRRX6i8KhzdFkBSiw/exec',
       CACHE_DURATION: 5 * 60 * 1000, // Cache for 5 minutes
-      CACHE_KEY: 'ltt_month_settings_cache'
+      CACHE_KEY: 'ltt_month_settings_cache',
+      OFFLINE_STORAGE_KEY: 'ltt_month_settings_offline' // SAMA dengan month-settings
     };
 
     const MONTHS = [
@@ -777,11 +778,21 @@
 
       getCachedSettings() {
         try {
+          // PRIORITAS 1: Cek offline settings dari admin panel
+          const offlineSettings = localStorage.getItem(CONFIG.OFFLINE_STORAGE_KEY);
+          if (offlineSettings) {
+            const data = JSON.parse(offlineSettings);
+            console.log('Using offline admin settings:', data);
+            return data;
+          }
+
+          // PRIORITAS 2: Cek cache server
           const cached = localStorage.getItem(CONFIG.CACHE_KEY);
           if (cached) {
             const data = JSON.parse(cached);
             const isExpired = Date.now() - data.timestamp > CONFIG.CACHE_DURATION;
             if (!isExpired) {
+              console.log('Using cached server settings:', data.settings);
               return data.settings;
             }
           }
