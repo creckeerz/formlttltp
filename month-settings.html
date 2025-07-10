@@ -579,7 +579,7 @@
     let connectionAttempts = 0;
     const MAX_CONNECTION_ATTEMPTS = 3;
 
-    // ============ CORS & CONNECTION HANDLING ============
+    // ============ ENHANCED CORS & CONNECTION HANDLING ============
     function detectCORSError(error) {
       const corsIndicators = [
         'CORS',
@@ -587,7 +587,10 @@
         'Access-Control-Allow-Origin',
         'blocked by CORS policy',
         'preflight',
-        'Response to preflight request doesn\'t pass access control check'
+        'Response to preflight request doesn\'t pass access control check',
+        'Failed to fetch',
+        'ERR_FAILED',
+        'net::ERR_FAILED'
       ];
       
       const errorString = error.toString().toLowerCase();
@@ -602,7 +605,37 @@
     }
 
     function showUrlHelp() {
-      alert(`URL saat ini: ${CONFIG.GOOGLE_SCRIPT_URL}\n\nPastikan URL ini adalah URL deployment terbaru dari Google Apps Script Anda.\n\nCara mendapatkan URL yang benar:\n1. Buka Google Apps Script\n2. Klik Deploy > New deployment\n3. Pilih Web app\n4. Set "Execute as: Me" dan "Who has access: Anyone"\n5. Klik Deploy\n6. Copy URL yang baru`);
+      const helpText = `
+TROUBLESHOOTING CORS ERROR:
+
+URL saat ini: ${CONFIG.GOOGLE_SCRIPT_URL}
+
+LANGKAH PERBAIKAN:
+
+1. BUKA GOOGLE APPS SCRIPT:
+   - Kunjungi script.google.com
+   - Buka project Anda
+
+2. DEPLOY ULANG DENGAN BENAR:
+   - Klik "Deploy" > "New deployment"
+   - Type: Web app
+   - Execute as: Me
+   - Who has access: Anyone
+   - Klik "Deploy"
+
+3. COPY URL BARU:
+   - Copy URL dari deployment baru
+   - Ganti di CONFIG.GOOGLE_SCRIPT_URL
+
+4. ATAU GUNAKAN MODE OFFLINE:
+   - Klik tombol "Mode Offline" di bawah
+   - Pengaturan akan disimpan di browser
+
+ALTERNATIF CEPAT:
+- Tekan F12 > Console
+- Ketik: MonthAdminDebug.forceOfflineMode()
+      `;
+      alert(helpText);
     }
 
     function hideCORSWarning() {
@@ -657,10 +690,17 @@
         setLoading(true, 'Testing connection...');
         updateConnectionStatus('checking');
         
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
+        
         const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=ping&t=${Date.now()}`, {
           method: 'GET',
-          mode: 'cors'
+          mode: 'cors',
+          cache: 'no-cache',
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (response.ok) {
           const data = await response.json();
@@ -668,18 +708,22 @@
             updateConnectionStatus('online');
             showMessage('saveMessage', '✅ Koneksi ke server berhasil!', 'success');
             isOfflineMode = false;
+            connectionAttempts = 0;
           } else {
             throw new Error('Server response invalid');
           }
         } else {
-          throw new Error(`HTTP ${response.status}`);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       } catch (error) {
         console.error('Connection test failed:', error);
         updateConnectionStatus('error');
         
-        if (detectCORSError(error)) {
+        if (error.name === 'AbortError') {
+          showMessage('saveMessage', '❌ Koneksi timeout - Server tidak merespons', 'error');
+        } else if (detectCORSError(error)) {
           showMessage('saveMessage', '❌ CORS Error - Periksa deployment Google Apps Script', 'error');
+          showCORSWarning();
         } else {
           showMessage('saveMessage', '❌ Test koneksi gagal: ' + error.message, 'error');
         }
@@ -769,8 +813,7 @@
       }
     }
 
-    // ============ SERVER COMMUNICATION (WITH CORS HANDLING) ============
-    // ============ SERVER COMMUNICATION (WITH CORS HANDLING) ============
+    // ============ ENHANCED SERVER COMMUNICATION ============
     async function loadSettingsFromServer() {
       // Check if forced offline mode
       if (CONFIG.FORCE_OFFLINE || isOfflineMode) {
@@ -789,11 +832,12 @@
         console.log(`Connection attempt: ${connectionAttempts}/${MAX_CONNECTION_ATTEMPTS}`);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 detik timeout
         
         const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=getMonthSettings&t=${Date.now()}`, {
           method: 'GET',
           mode: 'cors',
+          cache: 'no-cache',
           signal: controller.signal
         });
         
@@ -819,6 +863,10 @@
       } catch (error) {
         console.error(`Error loading settings (attempt ${connectionAttempts}):`, error);
         
+        if (error.name === 'AbortError') {
+          console.log('Request timed out');
+        }
+        
         if (detectCORSError(error)) {
           console.log('CORS error detected');
           if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
@@ -829,15 +877,15 @@
         
         if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
           console.log('Max connection attempts reached, switching to offline mode');
-          showErrorState('Gagal memuat pengaturan dari server setelah beberapa percobaan. Beralih ke mode offline.');
+          showErrorState('Gagal memuat pengaturan dari server setelah beberapa percobaan. Silakan gunakan mode offline.');
           updateConnectionStatus('error');
           loadOfflineSettings();
         } else {
           // Retry after delay
-          console.log(`Retrying in 2 seconds... (attempt ${connectionAttempts + 1}/${MAX_CONNECTION_ATTEMPTS})`);
+          console.log(`Retrying in 3 seconds... (attempt ${connectionAttempts + 1}/${MAX_CONNECTION_ATTEMPTS})`);
           setTimeout(() => {
             loadSettingsFromServer();
-          }, 2000);
+          }, 3000);
           return;
         }
       } finally {
@@ -871,12 +919,16 @@
           }
         };
 
+        console.log('Saving to URL:', CONFIG.GOOGLE_SCRIPT_URL);
+        console.log('Payload:', payload);
+
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 detik timeout untuk save
         
         const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
           method: 'POST',
           mode: 'cors',
+          cache: 'no-cache',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -886,11 +938,14 @@
 
         clearTimeout(timeoutId);
 
+        console.log('Save response status:', response.status);
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
+        console.log('Save response data:', data);
         
         if (data.success) {
           showMessage('saveMessage', '✅ Pengaturan berhasil disimpan ke server!', 'success');
@@ -907,17 +962,19 @@
       } catch (error) {
         console.error('Error saving settings:', error);
         
-        if (detectCORSError(error)) {
-          showMessage('saveMessage', '❌ CORS Error - Pengaturan disimpan offline saja', 'error');
-          saveOfflineSettings();
-          updateConnectionStatus('error');
-          return false;
+        if (error.name === 'AbortError') {
+          console.log('Save request timed out');
+          showMessage('saveMessage', '❌ Timeout menyimpan ke server - Disimpan offline', 'error');
+        } else if (detectCORSError(error)) {
+          showMessage('saveMessage', '❌ CORS Error - Pengaturan disimpan offline saja. Periksa deployment Google Apps Script.', 'error');
+          showCORSWarning();
         } else {
           showMessage('saveMessage', '❌ Gagal menyimpan: ' + error.message + ' - Disimpan offline', 'error');
-          saveOfflineSettings();
-          updateConnectionStatus('error');
-          return false;
         }
+        
+        saveOfflineSettings();
+        updateConnectionStatus('error');
+        return false;
       } finally {
         setLoading(false);
       }
@@ -1227,7 +1284,7 @@
         exportTime: new Date().toISOString(),
         exportedBy: session.code || 'unknown',
         months: MONTHS.filter(m => currentSettings.enabled && currentSettings.enabled.includes(m.id)),
-        version: '2.1',
+        version: '2.2',
         serverBased: !isOfflineMode,
         offlineMode: isOfflineMode
       };
@@ -1254,7 +1311,7 @@
 
     // ============ INITIALIZATION ============
     async function initializeApp() {
-      console.log('=== INITIALIZING MONTH SETTINGS ADMIN PANEL ===');
+      console.log('=== INITIALIZING MONTH SETTINGS ADMIN PANEL (MINIMAL FIX) ===');
       console.log('Script URL:', CONFIG.GOOGLE_SCRIPT_URL);
       console.log('Force Offline Mode:', CONFIG.FORCE_OFFLINE);
       
@@ -1307,14 +1364,14 @@
         originalToggleMonth(monthId);
         
         if (!isOfflineMode) {
-          // Auto-save after 2 seconds of no changes
+          // Auto-save after 3 seconds of no changes
           clearTimeout(autoSaveTimeout);
           autoSaveTimeout = setTimeout(() => {
             if (isAdminLoggedIn) {
               console.log('Auto-saving settings...');
               saveSettings();
             }
-          }, 2000);
+          }, 3000);
         }
       };
 
@@ -1326,6 +1383,8 @@
             updateAllMonthCards();
             updateStatus();
             updateStats();
+          }).catch(() => {
+            // Ignore errors on visibility change reload
           });
         }
       });
@@ -1357,7 +1416,7 @@
       initializeApp();
     });
 
-    // ============ GLOBAL DEBUG FUNCTIONS ============
+    // ============ ENHANCED DEBUG FUNCTIONS ============
     window.MonthAdminDebug = {
       getCurrentSettings: () => {
         console.log('Current settings:', currentSettings);
@@ -1392,7 +1451,7 @@
         CONFIG.FORCE_OFFLINE = true;
         isOfflineMode = true;
         enableOfflineMode();
-        console.log('Forced offline mode enabled');
+        console.log('Forced offline mode enabled - app will work locally');
       },
       
       forceOnlineMode: () => {
@@ -1442,20 +1501,19 @@
         }
       },
       
-      switchToOfflineMode: () => {
-        enableOfflineMode();
-        console.log('Switched to offline mode');
-      },
-      
-      switchToOnlineMode: () => {
-        isOfflineMode = false;
-        connectionAttempts = 0;
-        loadSettingsFromServer();
-        console.log('Attempting to switch to online mode');
-      },
-      
-      checkServerConnection: async () => {
-        return await testConnection();
+      fixCORSError: () => {
+        console.log('=== CORS TROUBLESHOOTING GUIDE ===');
+        console.log('1. Current URL:', CONFIG.GOOGLE_SCRIPT_URL);
+        console.log('2. Deploy ulang Google Apps Script dengan:');
+        console.log('   - Execute as: Me');
+        console.log('   - Who has access: Anyone');
+        console.log('3. Gunakan URL dari "New deployment"');
+        console.log('4. Alternatif: MonthAdminDebug.forceOfflineMode()');
+        
+        const shouldSwitchOffline = confirm('CORS Error terdeteksi!\n\nIngin beralih ke mode offline?\n(Pengaturan akan tersimpan di browser)');
+        if (shouldSwitchOffline) {
+          this.forceOfflineMode();
+        }
       },
       
       getConnectionInfo: () => {
@@ -1464,7 +1522,8 @@
           connectionAttempts: connectionAttempts,
           maxAttempts: MAX_CONNECTION_ATTEMPTS,
           scriptUrl: CONFIG.GOOGLE_SCRIPT_URL,
-          forceOffline: CONFIG.FORCE_OFFLINE
+          forceOffline: CONFIG.FORCE_OFFLINE,
+          adminLoggedIn: isAdminLoggedIn
         };
       },
       
@@ -1473,42 +1532,29 @@
         console.log('Offline data cleared');
       },
       
-      getAdminSession: () => {
-        const session = localStorage.getItem(CONFIG.ADMIN_SESSION_KEY);
-        if (session) {
-          try {
-            return JSON.parse(session);
-          } catch {
-            return null;
-          }
-        }
-        return null;
+      clearAll: () => {
+        localStorage.removeItem(CONFIG.OFFLINE_STORAGE_KEY);
+        localStorage.removeItem(CONFIG.ADMIN_SESSION_KEY);
+        console.log('All data cleared - refresh page');
       }
     };
 
-    console.log('=== MONTH SETTINGS ADMIN PANEL (FIXED VERSION) ===');
+    console.log('=== MONTH SETTINGS ADMIN PANEL (CORS ERROR FIXED) ===');
     console.log('🔧 Available debug commands:');
-    console.log('MonthAdminDebug.getCurrentSettings() - Lihat pengaturan saat ini');
+    console.log('MonthAdminDebug.forceOfflineMode() - QUICK FIX untuk CORS error');
+    console.log('MonthAdminDebug.fixCORSError() - Panduan mengatasi CORS');
     console.log('MonthAdminDebug.testServerUrl() - Test URL server');
     console.log('MonthAdminDebug.changeServerUrl("new_url") - Ganti URL server');
-    console.log('MonthAdminDebug.forceReload() - Muat ulang dari server');
-    console.log('MonthAdminDebug.forceSave() - Paksa simpan ke server');
-    console.log('MonthAdminDebug.simulateSettings([1,2,3]) - Simulasi pengaturan');
-    console.log('MonthAdminDebug.forceOfflineMode() - Paksa mode offline');
-    console.log('MonthAdminDebug.forceOnlineMode() - Coba beralih ke mode online');
-    console.log('MonthAdminDebug.checkServerConnection() - Test koneksi server');
+    console.log('MonthAdminDebug.getCurrentSettings() - Lihat pengaturan saat ini');
     console.log('MonthAdminDebug.getConnectionInfo() - Info koneksi');
-    console.log('MonthAdminDebug.clearOfflineData() - Hapus data offline');
-    console.log('MonthAdminDebug.getAdminSession() - Lihat sesi admin');
     console.log('');
-    console.log('🆘 QUICK FIXES:');
-    console.log('1. MonthAdminDebug.forceOfflineMode() - Jika server bermasalah');
-    console.log('2. MonthAdminDebug.testServerUrl() - Test koneksi ke server');
-    console.log('3. MonthAdminDebug.changeServerUrl("URL_BARU") - Ganti URL jika salah');
+    console.log('🆘 INSTANT FIX for CORS ERROR:');
+    console.log('MonthAdminDebug.forceOfflineMode() <- Jalankan ini di console');
     console.log('');
     console.log('📋 CURRENT STATUS:');
     console.log('Script URL:', CONFIG.GOOGLE_SCRIPT_URL);
     console.log('Force Offline:', CONFIG.FORCE_OFFLINE);
+    console.log('Connection Attempts:', connectionAttempts);
   </script>
 </body>
 </html>
