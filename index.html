@@ -436,13 +436,17 @@
 
   <!-- Main Header with Sub Headers -->
   <div class="main-header">
-    <div class="user-info">
-      <div class="session-info">
-        <div>Kode: <span id="userCode">***</span></div>
-        <div>Login: <span id="loginTime">***</span></div>
-      </div>
-      <button class="logout-btn" onclick="logout()">🚪 Logout</button>
-    </div>
+   <div class="user-info">
+  <div class="session-info">
+    <div>Kode: <span id="userCode">***</span></div>
+    <div>Login: <span id="loginTime">***</span></div>
+  </div>
+      <!-- TAMBAHAN: Link ke month settings -->
+  <a href="month-settings.html" class="admin-panel-link" title="Pengaturan Bulan Input">
+    ⚙️ Atur Bulan
+  </a>
+  <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+</div>
     
     <h1>Form Monitoring LTT & LTP</h1>
     <p>Sistem Monitoring Luas Tambah Tanam dan Luas Tambah Panen</p>
@@ -850,7 +854,7 @@ document.getElementById("monitoringForm").addEventListener('submit', async e => 
     return;
   }
 
-  // *** TAMBAHAN: Validasi bulan sebelum submit ***
+  // *** PERBAIKAN 1: VALIDASI BULAN SEBELUM SUBMIT ***
   const validation = MonthValidator.validateFormTimestamp(e.target);
   if (!validation.valid) {
     alert(validation.message);
@@ -858,12 +862,18 @@ document.getElementById("monitoringForm").addEventListener('submit', async e => 
     if (timestampInput) {
       timestampInput.focus();
       timestampInput.style.borderColor = '#dc3545';
+      
+      // Scroll ke timestamp input jika menggunakan SmartWizard
+      if (typeof $ !== 'undefined' && $.fn.smartWizard) {
+        $('#smartwizard').smartWizard('goToStep', 0); // Go to step 1
+      }
     }
     return;
   }
+  
   // *** AKHIR TAMBAHAN ***
 
-  const form = e.target;
+ const form = e.target;
   const submitButton = form.querySelector("button[type='submit']");
   const formData = new FormData(form);
 
@@ -875,11 +885,130 @@ document.getElementById("monitoringForm").addEventListener('submit', async e => 
     formData.set("Timestamp", formatted);
   }
 
-  // Sisa kode form submission tetap sama...
-  // ... (kode submission yang sudah ada)
+  // Disable submit button
+  submitButton.disabled = true;
+  
+  if (!navigator.onLine) {
+    // Offline: simpan ke queue
+    const submissionId = saveSubmissionToQueue(formData);
+    showToast("📱 Offline: Data disimpan lokal dan akan dikirim otomatis saat online", true);
+    form.reset();
+    localStorage.removeItem('ltt_form_data');
+    submitButton.disabled = false;
+    return;
+  }
+
+  // Online: coba kirim langsung
+  showLoading();
+  
+  try {
+    const response = await fetch(scriptURL, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (response.ok) {
+      showToast("✅ Data berhasil dikirim", true);
+      form.reset();
+      localStorage.removeItem('ltt_form_data');
+      loadData();
+      document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (error) {
+    // Jika gagal kirim online, simpan ke queue offline
+    const submissionId = saveSubmissionToQueue(formData);
+    showToast("⚠️ Koneksi bermasalah. Data disimpan lokal dan akan dikirim otomatis saat koneksi stabil", false);
+    form.reset();
+    localStorage.removeItem('ltt_form_data');
+  } finally {
+    hideLoading();
+    submitButton.disabled = false;
+  }
 });
 
-// TAMBAHKAN MONTH STATUS INDICATOR
+
+  
+  // *** PERBAIKAN 4: ENHANCED SMARTWIZARD VALIDATION ***
+// Tambahkan setelah initSmartWizard():
+function enhanceSmartWizardValidation() {
+  // Check if SmartWizard is available
+  if (typeof $ !== 'undefined' && $.fn && $.fn.smartWizard) {
+    $('#smartwizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex) {
+      // Validate timestamp when leaving step 1 (info dasar)
+      if (currentStepIndex === 0) {
+        const form = document.getElementById("monitoringForm");
+        const validation = MonthValidator.validateFormTimestamp(form);
+        
+        if (!validation.valid) {
+          alert(validation.message);
+          const timestampInput = form.querySelector('input[name="Timestamp"]');
+          if (timestampInput) {
+            timestampInput.focus();
+            timestampInput.style.borderColor = '#dc3545';
+          }
+          return false; // Prevent navigation to next step
+        }
+      }
+    });
+    
+    console.log('SmartWizard enhanced with month validation');
+  }
+}
+
+// *** PERBAIKAN 5: PANGGIL enhanceSmartWizardValidation ***
+// Tambahkan di akhir initSmartWizard():
+function initSmartWizard() {
+  try {
+    if (typeof $ !== 'undefined' && $.fn && $.fn.smartWizard) {
+      $('#smartwizard').smartWizard({
+        theme: 'dots',
+        autoAdjustHeight: true,
+        toolbarSettings: {
+          toolbarPosition: 'bottom',
+          showNextButton: true,
+          showPreviousButton: true
+        }
+      });
+      
+      // *** TAMBAHAN: Enhance dengan month validation ***
+      enhanceSmartWizardValidation();
+      
+      console.log('SmartWizard initialized successfully');
+    } else {
+      console.log('SmartWizard not available, form will work without step navigation');
+      document.querySelectorAll('.tab-pane').forEach((pane, index) => {
+        if (index === 0) pane.style.display = 'block';
+        else pane.style.display = 'none';
+      });
+    }
+  } catch (error) {
+    console.log('SmartWizard initialization failed:', error);
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+      pane.style.display = 'block';
+    });
+  }
+  
+  // Initialize app regardless
+  initializeApp();
+}
+
+// *** PERBAIKAN 6: SESSION DURATION ***
+// Ganti SESSION_DURATION dari 8 jam ke 1 jam:
+const SESSION_DURATION = 1 * 60 * 60 * 1000; // 1 jam (bukan 8 jam)
+
+// *** PERBAIKAN 7: DEBUGGING COMMANDS ***
+// Tambahkan di akhir script untuk debugging:
+console.log('=== MONTH VALIDATION DEBUG ===');
+console.log('Available commands:');
+console.log('MonthDebug.getCurrentSettings() - Lihat bulan aktif');
+console.log('MonthDebug.testTimestamp("2025-03-15T10:00") - Test validasi');
+console.log('MonthDebug.simulateMonthChange([1,2,3]) - Set Jan-Mar aktif');
+console.log('MonthValidator.getEnabledMonthsText() - Lihat teks bulan aktif');
+  
+  
+  // TAMBAHKAN MONTH STATUS INDICATOR
 function addMonthStatusIndicator() {
   const header = document.querySelector('.main-header');
   if (!header || document.getElementById('monthStatusIndicator')) return;
@@ -919,10 +1048,10 @@ function initializeApp() {
   console.log('Initializing app...');
   
   if (!checkAuthentication()) {
-    return;
+    return; // Stop initialization if not authenticated
   }
   
-  // Initialize components yang sudah ada
+  // Initialize components
   populateKecamatan();
   loadData();
   
@@ -1479,17 +1608,19 @@ window.MonthDebug = {
       }, 3000);
     }
 
+    
+
     // ============ FORM SUBMISSION ============
 
     // Form submission dengan offline support dan auth check
     document.getElementById("monitoringForm").addEventListener('submit', async e => {
-      e.preventDefault();
-      
-      // Check auth before submit
-      if (!LTTAuth.isLoggedIn()) {
-        LTTAuth.logout();
-        return;
-      }
+  e.preventDefault();
+  
+  // Check auth before submit
+  if (!LTTAuth.isLoggedIn()) {
+    LTTAuth.logout();
+    return;
+  }
 
       const form = e.target;
       const submitButton = form.querySelector("button[type='submit']");
@@ -1552,6 +1683,8 @@ window.MonthDebug = {
       allData = originalData.filter(row => row.join(' ').toLowerCase().includes(keyword));
       renderTablePage(1);
     });
+
+    
 
     // ============ KECAMATAN & DESA DATA ============
 
