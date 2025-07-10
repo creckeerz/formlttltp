@@ -12,7 +12,7 @@
     // Konfigurasi
     const CONFIG = {
         SESSION_KEY: 'ltt_session',
-        SESSION_DURATION: 8 * 60 * 60 * 1000, // 8 jam dalam milliseconds
+        SESSION_DURATION: 1 * 60 * 60 * 1000, // 8 jam dalam milliseconds
         WARNING_TIME: 5 * 60 * 1000, // Warning 5 menit sebelum expired
         VALID_ACCESS_CODES: [
             'SAMBAS2025',
