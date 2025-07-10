@@ -638,15 +638,12 @@
       
       logout: function() {
         localStorage.removeItem(SESSION_KEY);
-        // Redirect ke login page
-        // window.location.href = 'login.html';
-        alert('Logout berhasil! Dalam implementasi nyata akan diarahkan ke login.html');
+        window.location.href = 'login.html';
       },
       
       requireAuth: function() {
         if (!this.isLoggedIn()) {
-          // window.location.href = 'login.html';
-          alert('Sesi berakhir! Dalam implementasi nyata akan diarahkan ke login.html');
+          window.location.href = 'login.html';
           return false;
         }
         return true;
@@ -681,8 +678,7 @@
       if (!LTTAuth.isLoggedIn()) {
         // Tidak ada sesi valid, redirect ke login
         setTimeout(() => {
-          // window.location.href = 'login.html';
-          alert('Akses ditolak! Dalam implementasi nyata akan diarahkan ke login.html');
+          window.location.href = 'login.html';
         }, 1500);
         return false;
       }
@@ -1245,7 +1241,6 @@
     function initializeApp() {
       console.log('Initializing app...');
       
-      // Check authentication first
       if (!checkAuthentication()) {
         return; // Stop initialization if not authenticated
       }
@@ -1312,8 +1307,7 @@
       // Quick auth check to show protection immediately if needed
       if (!LTTAuth.isLoggedIn()) {
         setTimeout(() => {
-          // window.location.href = 'login.html';
-          alert('Akses ditolak! Dalam implementasi nyata akan diarahkan ke login.html');
+          window.location.href = 'login.html';
         }, 1500);
         return;
       }
