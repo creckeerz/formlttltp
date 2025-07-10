@@ -12,8 +12,8 @@
     // Konfigurasi
     const CONFIG = {
         SESSION_KEY: 'ltt_session',
-        SESSION_DURATION: 1 * 60 * 60 * 1000, // 8 jam dalam milliseconds
-        WARNING_TIME: 5 * 60 * 1000, // Warning 5 menit sebelum expired
+        SESSION_DURATION: 1 * 60 * 60 * 1000, // 1 jam dalam milliseconds (3.600.000 ms)
+        WARNING_TIME: 5 * 60 * 1000, // Warning 5 menit sebelum expired (300.000 ms)
         VALID_ACCESS_CODES: [
             'SAMBAS2025',
             'LTT2025', 
@@ -79,7 +79,7 @@
             const sessionData = {
                 accessCode: accessCode.toUpperCase(),
                 loginTime: Date.now(),
-                expiresAt: Date.now() + CONFIG.SESSION_DURATION,
+                expiresAt: Date.now() + CONFIG.SESSION_DURATION, // Sesi berakhir setelah 1 jam
                 userAgent: navigator.userAgent,
                 lastActivity: Date.now(),
                 sessionId: this._generateSessionId()
@@ -87,7 +87,7 @@
             
             try {
                 localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
-                console.log('Session created successfully');
+                console.log('Session created successfully - Duration: 1 hour');
                 return sessionData;
             } catch (error) {
                 console.error('Error creating session:', error);
@@ -104,12 +104,12 @@
             if (!session) return false;
 
             try {
-                session.expiresAt = Date.now() + CONFIG.SESSION_DURATION;
+                session.expiresAt = Date.now() + CONFIG.SESSION_DURATION; // Perpanjang 1 jam lagi
                 session.lastActivity = Date.now();
                 localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(session));
                 
                 this.hideSessionWarning();
-                console.log('Session extended successfully');
+                console.log('Session extended for another 1 hour');
                 return true;
             } catch (error) {
                 console.error('Error extending session:', error);
@@ -164,7 +164,7 @@
                             const session = this.createSession(accessCode);
                             resolve({
                                 success: true,
-                                message: 'Login berhasil',
+                                message: 'Login berhasil - Sesi berlaku selama 1 jam',
                                 session: session
                             });
                         } catch (error) {
@@ -242,7 +242,7 @@
                 if (session) {
                     const timeLeft = session.expiresAt - Date.now();
                     
-                    // Show warning if time left <= warning time and not already shown
+                    // Show warning if time left <= 5 minutes and not already shown
                     if (timeLeft <= CONFIG.WARNING_TIME && timeLeft > 0 && !isWarningShown) {
                         this.showSessionWarning(Math.ceil(timeLeft / 60000));
                     }
@@ -335,11 +335,16 @@
             const session = this.getSession();
             if (!session) return null;
 
+            const timeLeft = session.expiresAt - Date.now();
+            const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
+            const minutesLeft = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+
             return {
                 accessCode: session.accessCode,
                 loginTime: new Date(session.loginTime).toLocaleString(),
                 expiresAt: new Date(session.expiresAt).toLocaleString(),
-                timeLeft: session.expiresAt - Date.now(),
+                timeLeft: timeLeft,
+                timeLeftFormatted: `${hoursLeft} jam ${minutesLeft} menit`,
                 lastActivity: new Date(session.lastActivity).toLocaleString()
             };
         },
@@ -378,8 +383,9 @@
                     <div class="ltt-modal-content">
                         <h4>⚠️ Sesi Akan Berakhir</h4>
                         <p>Sesi Anda akan berakhir dalam <span id="ltt-session-countdown">5</span> menit.</p>
+                        <p><small>Sesi berlaku selama 1 jam sejak login</small></p>
                         <div class="ltt-modal-actions">
-                            <button onclick="LTTAuth.extendSession()" class="ltt-btn-extend">Perpanjang Sesi</button>
+                            <button onclick="LTTAuth.extendSession()" class="ltt-btn-extend">Perpanjang Sesi (1 Jam)</button>
                             <button onclick="LTTAuth.logout()" class="ltt-btn-logout">Logout</button>
                         </div>
                     </div>
@@ -422,12 +428,17 @@
                 }
                 .ltt-modal-content p {
                     color: #2c3e50;
-                    margin: 0 0 20px 0;
+                    margin: 0 0 15px 0;
+                }
+                .ltt-modal-content small {
+                    color: #7f8c8d;
+                    font-size: 12px;
                 }
                 .ltt-modal-actions {
                     display: flex;
                     gap: 10px;
                     justify-content: center;
+                    margin-top: 20px;
                 }
                 .ltt-btn-extend, .ltt-btn-logout {
                     padding: 10px 20px;
@@ -450,6 +461,14 @@
                 }
                 .ltt-btn-logout:hover {
                     background: #c0392b;
+                }
+                @media (max-width: 480px) {
+                    .ltt-modal-actions {
+                        flex-direction: column;
+                    }
+                    .ltt-btn-extend, .ltt-btn-logout {
+                        width: 100%;
+                    }
                 }
             `;
 
