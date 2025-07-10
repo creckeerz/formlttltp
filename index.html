@@ -6,84 +6,6 @@
   <title>Form Monitoring LTT & LTP</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/css/smart_wizard_all.min.css">
   <style>
-  /* Additional styles for month validation */
-  .timestamp-error {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border-radius: 6px;
-    margin-top: 8px;
-    font-size: 14px;
-    display: none;
-    border-left: 4px solid #dc3545;
-    animation: slideIn 0.3s ease-out;
-  }
-
-  .timestamp-info {
-    background: #d1ecf1;
-    color: #0c5460;
-    padding: 10px;
-    border-radius: 6px;
-    margin-top: 8px;
-    font-size: 13px;
-    border-left: 4px solid #17a2b8;
-  }
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .month-status-indicator {
-    background: linear-gradient(135deg, #e8f5e8, #d4edda);
-    border: 1px solid #c3e6cb;
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 15px;
-    font-size: 14px;
-    text-align: center;
-    color: #155724;
-  }
-
-  .admin-panel-link {
-    color: #3498db;
-    text-decoration: none;
-    font-size: 12px;
-    margin-left: 15px;
-    padding: 5px 10px;
-    border: 1px solid #3498db;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-  }
-
-  .admin-panel-link:hover {
-    background: #3498db;
-    color: white;
-  }
-
-  /* Enhanced timestamp input styling */
-  input[name="Timestamp"] {
-    transition: border-color 0.3s ease;
-  }
-
-  input[name="Timestamp"]:invalid {
-    border-color: #dc3545;
-  }
-
-  input[name="Timestamp"]:valid {
-    border-color: #28a745;
-  }
-</style>
-
- 
-  
-  <style>
     .scrollable-table {
       overflow-x: auto;
       max-width: 100%;
@@ -436,17 +358,13 @@
 
   <!-- Main Header with Sub Headers -->
   <div class="main-header">
-   <div class="user-info">
-  <div class="session-info">
-    <div>Kode: <span id="userCode">***</span></div>
-    <div>Login: <span id="loginTime">***</span></div>
-  </div>
-      <!-- TAMBAHAN: Link ke month settings -->
-  <a href="month-settings.html" class="admin-panel-link" title="Pengaturan Bulan Input">
-    ⚙️ Atur Bulan
-  </a>
-  <button class="logout-btn" onclick="logout()">🚪 Logout</button>
-</div>
+    <div class="user-info">
+      <div class="session-info">
+        <div>Kode: <span id="userCode">***</span></div>
+        <div>Login: <span id="loginTime">***</span></div>
+      </div>
+      <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+    </div>
     
     <h1>Form Monitoring LTT & LTP</h1>
     <p>Sistem Monitoring Luas Tambah Tanam dan Luas Tambah Panen</p>
@@ -480,8 +398,8 @@
         <div class="tab-content">
           <!-- STEP 1 -->
           <div id="step-1" class="tab-pane" role="tabpanel">
-  <label>Timestamp</label>
-  <input type="datetime-local" name="Timestamp" required />
+            <label>Timestamp</label>
+            <input type="datetime-local" name="Timestamp" required />
             <label>Periode Monitoring</label>
             <select name="Periode Monitoring" required>
               <option value="">Pilih</option>
@@ -692,422 +610,6 @@
     ✅ Data berhasil dikirim
   </div>
 
-<script>
-// ============ MONTH LOCK SYSTEM INTEGRATION ============
-
-const MONTH_LOCK_CONFIG = {
-  STORAGE_KEY: 'ltt_month_settings',
-  DEFAULT_ENABLED_MONTHS: [new Date().getMonth() + 1] // Default: bulan ini saja
-};
-
-const MONTHS = [
-  { id: 1, name: 'Januari', shortName: 'Jan' },
-  { id: 2, name: 'Februari', shortName: 'Feb' },
-  { id: 3, name: 'Maret', shortName: 'Mar' },
-  { id: 4, name: 'April', shortName: 'Apr' },
-  { id: 5, name: 'Mei', shortName: 'Mei' },
-  { id: 6, name: 'Juni', shortName: 'Jun' },
-  { id: 7, name: 'Juli', shortName: 'Jul' },
-  { id: 8, name: 'Agustus', shortName: 'Agu' },
-  { id: 9, name: 'September', shortName: 'Sep' },
-  { id: 10, name: 'Oktober', shortName: 'Okt' },
-  { id: 11, name: 'November', shortName: 'Nov' },
-  { id: 12, name: 'Desember', shortName: 'Des' }
-];
-
-/**
- * MONTH VALIDATOR - untuk digunakan di form utama
- */
-const MonthValidator = {
-  
-  loadSettings() {
-    try {
-      const saved = localStorage.getItem(MONTH_LOCK_CONFIG.STORAGE_KEY);
-      if (saved) {
-        const settings = JSON.parse(saved);
-        return settings.enabled || MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
-      }
-      return MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
-    } catch (error) {
-      console.warn('Error loading month settings:', error);
-      return MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
-    }
-  },
-
-  isMonthEnabled(month) {
-    const enabledMonths = this.loadSettings();
-    return enabledMonths.includes(month);
-  },
-
-  validateTimestamp(timestamp) {
-    if (!timestamp) return { valid: true, message: '' };
-    
-    try {
-      const date = new Date(timestamp);
-      const month = date.getMonth() + 1;
-      const monthName = MONTHS.find(m => m.id === month)?.name || 'Unknown';
-      
-      if (this.isMonthEnabled(month)) {
-        return { valid: true, message: '' };
-      } else {
-        return { 
-          valid: false, 
-          message: `❌ Bulan ${monthName} tidak diizinkan untuk input data!` 
-        };
-      }
-    } catch (error) {
-      return { 
-        valid: false, 
-        message: '❌ Format timestamp tidak valid!' 
-      };
-    }
-  },
-
-  getEnabledMonthsText() {
-    const enabledMonths = this.loadSettings();
-    const monthNames = enabledMonths
-      .map(id => MONTHS.find(m => m.id === id)?.name)
-      .filter(Boolean)
-      .join(', ');
-    
-    return monthNames || 'Tidak ada bulan yang diizinkan';
-  },
-
-  setupTimestampValidation() {
-    const timestampInput = document.querySelector('input[name="Timestamp"]');
-    if (!timestampInput) {
-      console.warn('Timestamp input not found');
-      return;
-    }
-
-    // Create error message element
-    let errorElement = timestampInput.parentNode.querySelector('.timestamp-error');
-    if (!errorElement) {
-      errorElement = document.createElement('div');
-      errorElement.className = 'timestamp-error';
-      timestampInput.parentNode.appendChild(errorElement);
-    }
-
-    // Create info element for allowed months
-    let infoElement = timestampInput.parentNode.querySelector('.timestamp-info');
-    if (!infoElement) {
-      infoElement = document.createElement('div');
-      infoElement.className = 'timestamp-info';
-      infoElement.innerHTML = `ℹ️ Bulan yang diizinkan: <strong>${this.getEnabledMonthsText()}</strong>`;
-      timestampInput.parentNode.appendChild(infoElement);
-    }
-
-    // Add validation on change
-    timestampInput.addEventListener('change', (e) => {
-      const validation = this.validateTimestamp(e.target.value);
-      
-      if (validation.valid) {
-        errorElement.style.display = 'none';
-        timestampInput.style.borderColor = '#28a745';
-      } else {
-        errorElement.textContent = validation.message;
-        errorElement.style.display = 'block';
-        timestampInput.style.borderColor = '#dc3545';
-      }
-    });
-
-    // Add validation on input (real-time)
-    timestampInput.addEventListener('input', (e) => {
-      if (e.target.value) {
-        const validation = this.validateTimestamp(e.target.value);
-        
-        if (validation.valid) {
-          errorElement.style.display = 'none';
-          timestampInput.style.borderColor = '#28a745';
-        } else {
-          errorElement.textContent = validation.message;
-          errorElement.style.display = 'block';
-          timestampInput.style.borderColor = '#dc3545';
-        }
-      } else {
-        errorElement.style.display = 'none';
-        timestampInput.style.borderColor = '#ccc';
-      }
-    });
-
-    console.log('Timestamp validation setup complete');
-  },
-
-  validateFormTimestamp(formElement) {
-    const timestampInput = formElement.querySelector('input[name="Timestamp"]');
-    if (!timestampInput) return { valid: true, message: '' };
-
-    return this.validateTimestamp(timestampInput.value);
-  }
-};
-
-// MODIFIKASI FORM SUBMISSION YANG SUDAH ADA
-// Tambahkan validasi bulan ke dalam event listener form submit yang sudah ada
-
-// Temukan bagian form submission yang sudah ada dan modifikasi seperti ini:
-document.getElementById("monitoringForm").addEventListener('submit', async e => {
-  e.preventDefault();
-  
-  // Check auth before submit
-  if (!LTTAuth.isLoggedIn()) {
-    LTTAuth.logout();
-    return;
-  }
-
-  // *** PERBAIKAN 1: VALIDASI BULAN SEBELUM SUBMIT ***
-  const validation = MonthValidator.validateFormTimestamp(e.target);
-  if (!validation.valid) {
-    alert(validation.message);
-    const timestampInput = e.target.querySelector('input[name="Timestamp"]');
-    if (timestampInput) {
-      timestampInput.focus();
-      timestampInput.style.borderColor = '#dc3545';
-      
-      // Scroll ke timestamp input jika menggunakan SmartWizard
-      if (typeof $ !== 'undefined' && $.fn.smartWizard) {
-        $('#smartwizard').smartWizard('goToStep', 0); // Go to step 1
-      }
-    }
-    return;
-  }
-  
-  // *** AKHIR TAMBAHAN ***
-
- const form = e.target;
-  const submitButton = form.querySelector("button[type='submit']");
-  const formData = new FormData(form);
-
-  // Format timestamp
-  const rawTimestamp = formData.get("Timestamp");
-  if (rawTimestamp) {
-    const dt = new Date(rawTimestamp);
-    const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:00`;
-    formData.set("Timestamp", formatted);
-  }
-
-  // Disable submit button
-  submitButton.disabled = true;
-  
-  if (!navigator.onLine) {
-    // Offline: simpan ke queue
-    const submissionId = saveSubmissionToQueue(formData);
-    showToast("📱 Offline: Data disimpan lokal dan akan dikirim otomatis saat online", true);
-    form.reset();
-    localStorage.removeItem('ltt_form_data');
-    submitButton.disabled = false;
-    return;
-  }
-
-  // Online: coba kirim langsung
-  showLoading();
-  
-  try {
-    const response = await fetch(scriptURL, {
-      method: 'POST',
-      body: formData
-    });
-    
-    if (response.ok) {
-      showToast("✅ Data berhasil dikirim", true);
-      form.reset();
-      localStorage.removeItem('ltt_form_data');
-      loadData();
-      document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
-    } else {
-      throw new Error('Server error');
-    }
-  } catch (error) {
-    // Jika gagal kirim online, simpan ke queue offline
-    const submissionId = saveSubmissionToQueue(formData);
-    showToast("⚠️ Koneksi bermasalah. Data disimpan lokal dan akan dikirim otomatis saat koneksi stabil", false);
-    form.reset();
-    localStorage.removeItem('ltt_form_data');
-  } finally {
-    hideLoading();
-    submitButton.disabled = false;
-  }
-});
-
-
-  
-  // *** PERBAIKAN 4: ENHANCED SMARTWIZARD VALIDATION ***
-// Tambahkan setelah initSmartWizard():
-function enhanceSmartWizardValidation() {
-  // Check if SmartWizard is available
-  if (typeof $ !== 'undefined' && $.fn && $.fn.smartWizard) {
-    $('#smartwizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex) {
-      // Validate timestamp when leaving step 1 (info dasar)
-      if (currentStepIndex === 0) {
-        const form = document.getElementById("monitoringForm");
-        const validation = MonthValidator.validateFormTimestamp(form);
-        
-        if (!validation.valid) {
-          alert(validation.message);
-          const timestampInput = form.querySelector('input[name="Timestamp"]');
-          if (timestampInput) {
-            timestampInput.focus();
-            timestampInput.style.borderColor = '#dc3545';
-          }
-          return false; // Prevent navigation to next step
-        }
-      }
-    });
-    
-    console.log('SmartWizard enhanced with month validation');
-  }
-}
-
-// *** PERBAIKAN 5: PANGGIL enhanceSmartWizardValidation ***
-// Tambahkan di akhir initSmartWizard():
-function initSmartWizard() {
-  try {
-    if (typeof $ !== 'undefined' && $.fn && $.fn.smartWizard) {
-      $('#smartwizard').smartWizard({
-        theme: 'dots',
-        autoAdjustHeight: true,
-        toolbarSettings: {
-          toolbarPosition: 'bottom',
-          showNextButton: true,
-          showPreviousButton: true
-        }
-      });
-      
-      // *** TAMBAHAN: Enhance dengan month validation ***
-      enhanceSmartWizardValidation();
-      
-      console.log('SmartWizard initialized successfully');
-    } else {
-      console.log('SmartWizard not available, form will work without step navigation');
-      document.querySelectorAll('.tab-pane').forEach((pane, index) => {
-        if (index === 0) pane.style.display = 'block';
-        else pane.style.display = 'none';
-      });
-    }
-  } catch (error) {
-    console.log('SmartWizard initialization failed:', error);
-    document.querySelectorAll('.tab-pane').forEach(pane => {
-      pane.style.display = 'block';
-    });
-  }
-  
-  // Initialize app regardless
-  initializeApp();
-}
-
-// *** PERBAIKAN 6: SESSION DURATION ***
-// Ganti SESSION_DURATION dari 8 jam ke 1 jam:
-const SESSION_DURATION = 1 * 60 * 60 * 1000; // 1 jam (bukan 8 jam)
-
-// *** PERBAIKAN 7: DEBUGGING COMMANDS ***
-// Tambahkan di akhir script untuk debugging:
-console.log('=== MONTH VALIDATION DEBUG ===');
-console.log('Available commands:');
-console.log('MonthDebug.getCurrentSettings() - Lihat bulan aktif');
-console.log('MonthDebug.testTimestamp("2025-03-15T10:00") - Test validasi');
-console.log('MonthDebug.simulateMonthChange([1,2,3]) - Set Jan-Mar aktif');
-console.log('MonthValidator.getEnabledMonthsText() - Lihat teks bulan aktif');
-  
-  
-  // TAMBAHKAN MONTH STATUS INDICATOR
-function addMonthStatusIndicator() {
-  const header = document.querySelector('.main-header');
-  if (!header || document.getElementById('monthStatusIndicator')) return;
-
-  const statusDiv = document.createElement('div');
-  statusDiv.id = 'monthStatusIndicator';
-  statusDiv.className = 'month-status-indicator';
-  
-  const enabledMonths = MonthValidator.getEnabledMonthsText();
-  statusDiv.innerHTML = `
-    📅 <strong>Bulan Input Aktif:</strong> ${enabledMonths}
-    <br><small>Hanya bulan yang tercantum di atas yang dapat digunakan untuk input data</small>
-  `;
-  
-  header.appendChild(statusDiv);
-}
-
-// INITIALIZATION - Tambahkan ke bagian initialization yang sudah ada
-function initializeMonthValidation() {
-  console.log('Initializing month validation system...');
-  
-  // Setup timestamp validation
-  MonthValidator.setupTimestampValidation();
-  
-  // Add month status indicator
-  addMonthStatusIndicator();
-  
-  console.log('Month validation system initialized');
-  console.log('Enabled months:', MonthValidator.getEnabledMonthsText());
-}
-
-// MODIFIKASI BAGIAN INITIALIZATION YANG SUDAH ADA
-// Tambahkan pemanggilan initializeMonthValidation() ke dalam initializeApp() yang sudah ada
-
-// Temukan function initializeApp() dan tambahkan:
-function initializeApp() {
-  console.log('Initializing app...');
-  
-  if (!checkAuthentication()) {
-    return; // Stop initialization if not authenticated
-  }
-  
-  // Initialize components
-  populateKecamatan();
-  loadData();
-  
-  // Setup offline functionality
-  updateConnectionStatus();
-  setupAutoSave();
-  
-  // *** TAMBAHAN: Initialize month validation ***
-  initializeMonthValidation();
-  
-  // Restore form data jika ada
-  setTimeout(() => {
-    restoreFormData();
-  }, 1000);
-  
-  // Auto-sync setiap 30 detik jika online
-  setInterval(() => {
-    if (navigator.onLine && getPendingSubmissions().length > 0) {
-      syncPendingSubmissions();
-    }
-  }, 30000);
-  
-  console.log('App initialized successfully');
-}
-
-// Make MonthValidator globally available
-window.MonthValidator = MonthValidator;
-
-// Debugging utilities
-window.MonthDebug = {
-  getCurrentSettings() {
-    return MonthValidator.loadSettings();
-  },
-  
-  testTimestamp(timestamp) {
-    return MonthValidator.validateTimestamp(timestamp);
-  },
-  
-  getEnabledMonths() {
-    return MonthValidator.getEnabledMonthsText();
-  },
-  
-  simulateMonthChange(enabledMonths) {
-    const settings = {
-      enabled: enabledMonths,
-      lastUpdated: Date.now(),
-      updatedBy: 'debug'
-    };
-    localStorage.setItem(MONTH_LOCK_CONFIG.STORAGE_KEY, JSON.stringify(settings));
-    location.reload();
-  }
-};
-</script>
-
-
-  
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
   
@@ -1608,19 +1110,17 @@ window.MonthDebug = {
       }, 3000);
     }
 
-    
-
     // ============ FORM SUBMISSION ============
 
     // Form submission dengan offline support dan auth check
     document.getElementById("monitoringForm").addEventListener('submit', async e => {
-  e.preventDefault();
-  
-  // Check auth before submit
-  if (!LTTAuth.isLoggedIn()) {
-    LTTAuth.logout();
-    return;
-  }
+      e.preventDefault();
+      
+      // Check auth before submit
+      if (!LTTAuth.isLoggedIn()) {
+        LTTAuth.logout();
+        return;
+      }
 
       const form = e.target;
       const submitButton = form.querySelector("button[type='submit']");
@@ -1683,8 +1183,6 @@ window.MonthDebug = {
       allData = originalData.filter(row => row.join(' ').toLowerCase().includes(keyword));
       renderTablePage(1);
     });
-
-    
 
     // ============ KECAMATAN & DESA DATA ============
 
