@@ -120,6 +120,7 @@
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 15px;
+      box-sizing: border-box;
     }
 
     button.sw-btn {
@@ -182,9 +183,67 @@
       font-size: 14px;
       padding: 8px 16px;
     }
+
+    /* Offline Status Indicator */
+    .offline-status {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #e74c3c;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .offline-status.online {
+      background: #2ecc71;
+    }
+
+    .offline-status.syncing {
+      background: #f39c12;
+    }
+
+    /* Pending Submissions Counter */
+    .pending-counter {
+      position: fixed;
+      top: 70px;
+      left: 20px;
+      background: #9b59b6;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      z-index: 1000;
+      display: none;
+    }
+
+    /* Form auto-save indicator */
+    .form-auto-save {
+      background: #e8f5e8;
+      border-left: 4px solid #2ecc71;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-size: 14px;
+      display: none;
+    }
   </style>
 </head>
 <body>
+  <!-- Offline Status Indicators -->
+  <div id="offlineStatus" class="offline-status">
+    📡 Status Koneksi
+  </div>
+  
+  <div id="pendingCounter" class="pending-counter">
+    📤 <span id="pendingCount">0</span> data menunggu sinkronisasi
+  </div>
+
   <!-- Main Header with Sub Headers -->
   <div class="main-header">
     <h1>Form Monitoring LTT & LTP</h1>
@@ -202,6 +261,11 @@
   </div>
 
   <div class="sw-container">
+    <!-- Auto-save indicator -->
+    <div id="autoSaveIndicator" class="form-auto-save">
+      💾 Data form disimpan otomatis setiap perubahan
+    </div>
+
     <form id="monitoringForm">
       <div id="smartwizard">
         <ul class="nav">
@@ -383,6 +447,7 @@
     <div>
       <button type="button" onclick="loadData()">🔄 Reload Data</button>
       <button type="button" onclick="exportTableToExcel()">📥 Export Excel</button>
+      <button type="button" id="manualSyncBtn" onclick="manualSync()" style="display: none;">🔄 Sync Manual</button>
     </div>
   </div>
 
@@ -432,6 +497,8 @@
     const scriptURL = 'https://script.google.com/macros/s/AKfycbzEopPS-bHiRVbW2hNOEoxA7b66V00KNriCsmqM_hlWzKEVsflEtpRRX6i8KhzdFkBSiw/exec';
     const perPage = 5;
     let allData = [], originalData = [], currentPage = 1;
+    let isOnline = navigator.onLine;
+    let autoSaveTimeout = null;
 
     // Header yang sesuai dengan urutan di spreadsheet yang diinginkan
     const defaultHeaders = [
@@ -443,6 +510,225 @@
       "LTP Jagung (Ha)", "Provitas Jagung (Ku/Ha)", "Luas Baku Sawah (LBS)",
       "IP Existing", "Luas Tanam Tahun Sebelumnya (Ha)", "Provitas Padi Gogo (Ku/Ha)"
     ];
+
+    // ============ OFFLINE FUNCTIONALITY ============
+    
+    // Memonitor status koneksi
+    function updateConnectionStatus() {
+      const statusEl = document.getElementById('offlineStatus');
+      
+      if (navigator.onLine) {
+        statusEl.textContent = '🟢 Online';
+        statusEl.className = 'offline-status online';
+        statusEl.style.display = 'block';
+        
+        // Auto sync saat kembali online
+        if (!isOnline) {
+          syncPendingSubmissions();
+        }
+        isOnline = true;
+        
+        // Hide status setelah 3 detik jika online
+        setTimeout(() => {
+          if (navigator.onLine && getPendingSubmissions().length === 0) {
+            statusEl.style.display = 'none';
+          }
+        }, 3000);
+      } else {
+        statusEl.textContent = '🔴 Offline - Data akan disimpan lokal';
+        statusEl.className = 'offline-status';
+        statusEl.style.display = 'block';
+        isOnline = false;
+      }
+      
+      updatePendingCounter();
+    }
+
+    // Update counter pending submissions
+    function updatePendingCounter() {
+      const pendingSubmissions = getPendingSubmissions();
+      const pendingEl = document.getElementById('pendingCounter');
+      const countEl = document.getElementById('pendingCount');
+      const syncBtn = document.getElementById('manualSyncBtn');
+      
+      if (pendingSubmissions.length > 0) {
+        countEl.textContent = pendingSubmissions.length;
+        pendingEl.style.display = 'block';
+        if (syncBtn) syncBtn.style.display = 'inline-block';
+      } else {
+        pendingEl.style.display = 'none';
+        if (syncBtn) syncBtn.style.display = 'none';
+      }
+    }
+
+    // Manual sync function
+    function manualSync() {
+      if (navigator.onLine) {
+        syncPendingSubmissions();
+      } else {
+        showToast('❌ Tidak ada koneksi internet', false);
+      }
+    }
+
+    // Simpan form data ke localStorage
+    function saveFormDataLocally(formData) {
+      const dataObj = {};
+      for (let [key, value] of formData.entries()) {
+        dataObj[key] = value;
+      }
+      
+      dataObj._saveTime = Date.now();
+      dataObj._id = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      localStorage.setItem('ltt_form_data', JSON.stringify(dataObj));
+      return dataObj;
+    }
+
+    // Load form data dari localStorage
+    function loadFormDataLocally() {
+      return JSON.parse(localStorage.getItem('ltt_form_data') || '{}');
+    }
+
+    // Auto-save form setiap input berubah
+    function setupAutoSave() {
+      const form = document.getElementById('monitoringForm');
+      const inputs = form.querySelectorAll('input, select');
+      
+      inputs.forEach(input => {
+        input.addEventListener('input', () => {
+          clearTimeout(autoSaveTimeout);
+          autoSaveTimeout = setTimeout(() => {
+            const formData = new FormData(form);
+            saveFormDataLocally(formData);
+            showAutoSaveIndicator();
+          }, 1000);
+        });
+      });
+    }
+
+    // Tampilkan indikator auto-save
+    function showAutoSaveIndicator() {
+      const indicator = document.getElementById('autoSaveIndicator');
+      indicator.style.display = 'block';
+      indicator.innerHTML = '💾 Data tersimpan otomatis pada: ' + new Date().toLocaleTimeString();
+      
+      setTimeout(() => {
+        indicator.style.display = 'none';
+      }, 3000);
+    }
+
+    // Simpan submission ke queue offline
+    function saveSubmissionToQueue(formData) {
+      const pendingSubmissions = getPendingSubmissions();
+      
+      const dataObj = {};
+      for (let [key, value] of formData.entries()) {
+        dataObj[key] = value;
+      }
+      
+      dataObj._submissionTime = Date.now();
+      dataObj._id = 'pending_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      pendingSubmissions.push(dataObj);
+      localStorage.setItem('ltt_pending_submissions', JSON.stringify(pendingSubmissions));
+      
+      updatePendingCounter();
+      return dataObj._id;
+    }
+
+    // Get pending submissions
+    function getPendingSubmissions() {
+      return JSON.parse(localStorage.getItem('ltt_pending_submissions') || '[]');
+    }
+
+    // Sinkronisasi pending submissions
+    async function syncPendingSubmissions() {
+      const pendingSubmissions = getPendingSubmissions();
+      if (pendingSubmissions.length === 0) return;
+      
+      const statusEl = document.getElementById('offlineStatus');
+      statusEl.textContent = '🔄 Menyinkronkan ' + pendingSubmissions.length + ' data...';
+      statusEl.className = 'offline-status syncing';
+      statusEl.style.display = 'block';
+      
+      let successCount = 0;
+      const totalCount = pendingSubmissions.length;
+      
+      for (let i = 0; i < pendingSubmissions.length; i++) {
+        const submission = pendingSubmissions[i];
+        const formData = new FormData();
+        
+        for (let key in submission) {
+          if (!key.startsWith('_')) {
+            formData.append(key, submission[key]);
+          }
+        }
+        
+        try {
+          const response = await fetch(scriptURL, {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (response.ok) {
+            successCount++;
+            pendingSubmissions.splice(i, 1);
+            i--;
+            localStorage.setItem('ltt_pending_submissions', JSON.stringify(pendingSubmissions));
+            updatePendingCounter();
+          }
+        } catch (error) {
+          console.log('Sync failed for submission:', submission._id);
+        }
+        
+        statusEl.textContent = `🔄 Sinkronisasi ${successCount}/${totalCount}...`;
+      }
+      
+      if (successCount > 0) {
+        showToast(`✅ ${successCount} data berhasil disinkronkan`, true);
+        loadData();
+      }
+      
+      if (pendingSubmissions.length === 0) {
+        statusEl.textContent = '🟢 Semua data tersinkronkan';
+        setTimeout(() => {
+          if (navigator.onLine) {
+            statusEl.style.display = 'none';
+          }
+        }, 3000);
+      }
+      
+      updatePendingCounter();
+    }
+
+    // Load saved form data saat halaman dimuat
+    function restoreFormData() {
+      const savedData = loadFormDataLocally();
+      if (Object.keys(savedData).length === 0) return;
+      
+      const form = document.getElementById('monitoringForm');
+      
+      for (let key in savedData) {
+        if (!key.startsWith('_')) {
+          const input = form.querySelector(`[name="${key}"]`);
+          if (input) {
+            input.value = savedData[key];
+            
+            if (input.tagName === 'SELECT') {
+              input.dispatchEvent(new Event('change'));
+            }
+          }
+        }
+      }
+      
+      showToast('📋 Data form sebelumnya telah dipulihkan', true);
+    }
+
+    // Event listeners untuk monitoring koneksi
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+
+    // ============ TABLE FUNCTIONALITY ============
 
     function renderTablePage(page) {
       const tableHead = document.getElementById("tableHead");
@@ -491,6 +777,10 @@
           originalData = data.slice(1).reverse();
           allData = [...originalData];
           renderTablePage(1);
+        })
+        .catch(error => {
+          console.log('Error loading data:', error);
+          showToast('⚠️ Gagal memuat data dari server', false);
         });
     }
 
@@ -522,8 +812,10 @@
       }, 3000);
     }
 
-    // Form submission
-    document.getElementById("monitoringForm").addEventListener('submit', e => {
+    // ============ FORM SUBMISSION ============
+
+    // Form submission dengan offline support
+    document.getElementById("monitoringForm").addEventListener('submit', async e => {
       e.preventDefault();
       const form = e.target;
       const submitButton = form.querySelector("button[type='submit']");
@@ -537,28 +829,47 @@
         formData.set("Timestamp", formatted);
       }
 
-      // Tampilkan loading dan disable tombol
-      showLoading();
+      // Disable submit button
       submitButton.disabled = true;
+      
+      if (!navigator.onLine) {
+        // Offline: simpan ke queue
+        const submissionId = saveSubmissionToQueue(formData);
+        showToast("📱 Offline: Data disimpan lokal dan akan dikirim otomatis saat online", true);
+        form.reset();
+        localStorage.removeItem('ltt_form_data');
+        submitButton.disabled = false;
+        return;
+      }
 
-      fetch(scriptURL, {
-        method: 'POST',
-        body: formData
-      })
-        .then(res => res.text())
-        .then(() => {
+      // Online: coba kirim langsung
+      showLoading();
+      
+      try {
+        const response = await fetch(scriptURL, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
           showToast("✅ Data berhasil dikirim", true);
           form.reset();
+          localStorage.removeItem('ltt_form_data');
           loadData();
           document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
-        })
-        .catch(() => {
-          showToast("❌ Gagal mengirim data", false);
-        })
-        .finally(() => {
-          hideLoading();
-          submitButton.disabled = false;
-        });
+        } else {
+          throw new Error('Server error');
+        }
+      } catch (error) {
+        // Jika gagal kirim online, simpan ke queue offline
+        const submissionId = saveSubmissionToQueue(formData);
+        showToast("⚠️ Koneksi bermasalah. Data disimpan lokal dan akan dikirim otomatis saat koneksi stabil", false);
+        form.reset();
+        localStorage.removeItem('ltt_form_data');
+      } finally {
+        hideLoading();
+        submitButton.disabled = false;
+      }
     });
 
     // Search filter
@@ -567,6 +878,8 @@
       allData = originalData.filter(row => row.join(' ').toLowerCase().includes(keyword));
       renderTablePage(1);
     });
+
+    // ============ KECAMATAN & DESA DATA ============
 
     // Data kecamatan dan desa
     const desaPerKecamatan = {
@@ -617,22 +930,92 @@
       });
     });
 
-    // Init Smart Wizard
-    $(document).ready(function () {
-      $('#smartwizard').smartWizard({
-        theme: 'dots',
-        autoAdjustHeight: true,
-        toolbarSettings: {
-          toolbarPosition: 'bottom',
-          showNextButton: true,
-          showPreviousButton: true
-        }
-      });
+    // ============ INITIALIZATION ============
+
+    // Initialize app
+    function initializeApp() {
+      console.log('Initializing app...');
       
-      // Initialize app
+      // Initialize components
       populateKecamatan();
       loadData();
+      
+      // Setup offline functionality
+      updateConnectionStatus();
+      setupAutoSave();
+      
+      // Restore form data jika ada
+      setTimeout(() => {
+        restoreFormData();
+      }, 1000);
+      
+      // Auto-sync setiap 30 detik jika online
+      setInterval(() => {
+        if (navigator.onLine && getPendingSubmissions().length > 0) {
+          syncPendingSubmissions();
+        }
+      }, 30000);
+      
+      console.log('App initialized successfully');
+    }
+
+    // Init Smart Wizard dengan error handling
+    function initSmartWizard() {
+      try {
+        if (typeof $ !== 'undefined' && $.fn && $.fn.smartWizard) {
+          $('#smartwizard').smartWizard({
+            theme: 'dots',
+            autoAdjustHeight: true,
+            toolbarSettings: {
+              toolbarPosition: 'bottom',
+              showNextButton: true,
+              showPreviousButton: true
+            }
+          });
+          console.log('SmartWizard initialized successfully');
+        } else {
+          console.log('SmartWizard not available, form will work without step navigation');
+          // SmartWizard tidak tersedia, tapi form tetap bisa digunakan
+          document.querySelectorAll('.tab-pane').forEach((pane, index) => {
+            if (index === 0) pane.style.display = 'block';
+            else pane.style.display = 'none';
+          });
+        }
+      } catch (error) {
+        console.log('SmartWizard initialization failed:', error);
+        // Fallback: tampilkan semua step
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+          pane.style.display = 'block';
+        });
+      }
+      
+      // Initialize app regardless
+      initializeApp();
+    }
+
+    // jQuery ready dengan fallback
+    $(document).ready(function () {
+      initSmartWizard();
     });
+
+    // Fallback jika jQuery tidak ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+          if (typeof $ === 'undefined') {
+            console.log('jQuery not available, initializing without SmartWizard');
+            initializeApp();
+          }
+        }, 1000);
+      });
+    } else {
+      setTimeout(() => {
+        if (typeof $ === 'undefined') {
+          console.log('jQuery not available, initializing without SmartWizard');
+          initializeApp();
+        }
+      }, 1000);
+    }
   </script>
 </body>
 </html>
