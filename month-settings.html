@@ -878,3 +878,558 @@
           
           // Also save offline as backup
           saveOfflineSettings();
+          return true;
+        } else {
+          throw new Error(data.message || 'Failed to save settings');
+        }
+        
+      } catch (error) {
+        console.error('Error saving settings:', error);
+        
+        if (detectCORSError(error)) {
+          showMessage('saveMessage', '❌ CORS Error - Pengaturan disimpan offline saja', 'error');
+          saveOfflineSettings();
+          updateConnectionStatus('error');
+          return false;
+        } else {
+          showMessage('saveMessage', '❌ Gagal menyimpan: ' + error.message + ' - Disimpan offline', 'error');
+          saveOfflineSettings();
+          updateConnectionStatus('error');
+          return false;
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ============ UI MANAGEMENT ============
+    function setLoading(loading, message = 'Memuat...') {
+      isLoading = loading;
+      const loadingEl = document.getElementById('loadingState');
+      const adminLogin = document.getElementById('adminLogin');
+      const adminPanel = document.getElementById('adminPanel');
+      const saveBtn = document.getElementById('saveBtn');
+      
+      if (loading) {
+        loadingEl.style.display = 'block';
+        loadingEl.querySelector('p').textContent = message;
+        adminLogin.style.display = 'none';
+        adminPanel.style.display = 'none';
+        if (saveBtn) saveBtn.disabled = true;
+      } else {
+        loadingEl.style.display = 'none';
+        if (saveBtn) saveBtn.disabled = false;
+        showAppropriatePanel();
+      }
+    }
+
+    function showAppropriatePanel() {
+      const adminLogin = document.getElementById('adminLogin');
+      const adminPanel = document.getElementById('adminPanel');
+      const errorState = document.getElementById('errorState');
+      
+      errorState.style.display = 'none';
+      
+      if (isAdminLoggedIn) {
+        showAdminPanel();
+      } else {
+        showLoginPanel();
+      }
+    }
+
+    function showLoginPanel() {
+      document.getElementById('adminLogin').style.display = 'block';
+      document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    function showAdminPanel() {
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      generateMonthGrid();
+      updateAllMonthCards();
+      updateStatus();
+      updateStats();
+    }
+
+    function showErrorState(message) {
+      const errorState = document.getElementById('errorState');
+      const errorMessage = document.getElementById('errorMessage');
+      
+      errorMessage.textContent = message;
+      errorState.style.display = 'block';
+      
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    function hideErrorState() {
+      document.getElementById('errorState').style.display = 'none';
+    }
+
+    function showError(element, message) {
+      element.textContent = message;
+      element.style.display = 'block';
+      
+      setTimeout(() => {
+        element.style.display = 'none';
+      }, 5000);
+    }
+
+    function showMessage(elementId, message, type = 'success') {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+
+      el.textContent = message;
+      el.className = type === 'success' ? 'success-message' : 'error-message';
+      el.style.display = 'block';
+
+      setTimeout(() => {
+        el.style.display = 'none';
+      }, 5000);
+    }
+
+    // ============ MONTH MANAGEMENT ============
+    function generateMonthGrid() {
+      const grid = document.getElementById('monthGrid');
+      if (!grid) return;
+
+      grid.innerHTML = '';
+      const currentMonth = new Date().getMonth() + 1;
+      
+      MONTHS.forEach(month => {
+        const card = document.createElement('div');
+        card.className = 'month-card';
+        card.id = `month-${month.id}`;
+        card.onclick = () => toggleMonth(month.id);
+        
+        if (month.id === currentMonth) {
+          card.classList.add('current');
+        }
+        
+        card.innerHTML = `
+          <div class="toggle-icon" id="icon-${month.id}">🔒</div>
+          <div class="month-name">${month.name}</div>
+          <div class="month-status" id="status-${month.id}">Terkunci</div>
+        `;
+        
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleMonth(monthId) {
+      if (!isAdminLoggedIn || isLoading) return;
+
+      if (!currentSettings.enabled) {
+        currentSettings.enabled = [];
+      }
+
+      const index = currentSettings.enabled.indexOf(monthId);
+      if (index > -1) {
+        currentSettings.enabled.splice(index, 1);
+      } else {
+        currentSettings.enabled.push(monthId);
+      }
+
+      updateMonthCard(monthId);
+      updateStatus();
+      updateStats();
+      
+      // Auto-save in offline mode
+      if (isOfflineMode) {
+        saveOfflineSettings();
+      }
+    }
+
+    function updateMonthCard(monthId) {
+      const card = document.getElementById(`month-${monthId}`);
+      const icon = document.getElementById(`icon-${monthId}`);
+      const status = document.getElementById(`status-${monthId}`);
+      
+      if (!card) return;
+
+      const isEnabled = currentSettings.enabled && currentSettings.enabled.includes(monthId);
+      const currentMonth = new Date().getMonth() + 1;
+      
+      card.className = 'month-card';
+      if (monthId === currentMonth) {
+        card.classList.add('current');
+      }
+      card.classList.add(isEnabled ? 'enabled' : 'disabled');
+      
+      icon.textContent = isEnabled ? '🔓' : '🔒';
+      status.textContent = isEnabled ? 'Terbuka' : 'Terkunci';
+      status.className = `month-status ${isEnabled ? 'enabled' : 'disabled'}`;
+    }
+
+    function updateAllMonthCards() {
+      MONTHS.forEach(month => {
+        updateMonthCard(month.id);
+      });
+    }
+
+    function updateStatus() {
+      const statusText = document.getElementById('statusText');
+      
+      if (statusText) {
+        const enabledCount = currentSettings.enabled ? currentSettings.enabled.length : 0;
+        const enabledMonths = currentSettings.enabled ? 
+          currentSettings.enabled.map(id => MONTHS.find(m => m.id === id)?.shortName).join(', ') : 
+          'Tidak ada';
+        
+        const modeText = isOfflineMode ? ' (Mode Offline)' : '';
+        statusText.innerHTML = `${enabledCount} bulan aktif (${enabledMonths})${modeText}`;
+      }
+    }
+
+    function updateStats() {
+      const enabledCount = document.getElementById('enabledCount');
+      const currentMonthStatus = document.getElementById('currentMonthStatus');
+      const lastUpdateTime = document.getElementById('lastUpdateTime');
+      
+      if (enabledCount) {
+        const count = currentSettings.enabled ? currentSettings.enabled.length : 0;
+        enabledCount.textContent = count;
+      }
+      
+      if (currentMonthStatus) {
+        const currentMonth = new Date().getMonth() + 1;
+        const isCurrentEnabled = currentSettings.enabled && currentSettings.enabled.includes(currentMonth);
+        currentMonthStatus.textContent = isCurrentEnabled ? '✅' : '❌';
+      }
+      
+      if (lastUpdateTime) {
+        if (currentSettings.lastUpdated) {
+          const updateDate = new Date(currentSettings.lastUpdated);
+          const timeAgo = getTimeAgo(updateDate);
+          lastUpdateTime.textContent = timeAgo;
+        } else {
+          lastUpdateTime.textContent = '-';
+        }
+      }
+    }
+
+    function getTimeAgo(date) {
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+      
+      if (diffMins < 1) return 'Baru saja';
+      if (diffMins < 60) return `${diffMins}m yang lalu`;
+      if (diffHours < 24) return `${diffHours}h yang lalu`;
+      if (diffDays < 7) return `${diffDays}d yang lalu`;
+      return date.toLocaleDateString();
+    }
+
+    // ============ QUICK ACTIONS ============
+    function enableAllMonths() {
+      if (!isAdminLoggedIn || isLoading) return;
+      
+      currentSettings.enabled = MONTHS.map(m => m.id);
+      updateAllMonthCards();
+      updateStatus();
+      updateStats();
+      showMessage('saveMessage', '✅ Semua bulan berhasil dibuka!', 'success');
+      
+      if (isOfflineMode) {
+        saveOfflineSettings();
+      }
+    }
+
+    function disableAllMonths() {
+      if (!isAdminLoggedIn || isLoading) return;
+      
+      if (confirm('Yakin ingin mengunci semua bulan?')) {
+        currentSettings.enabled = [];
+        updateAllMonthCards();
+        updateStatus();
+        updateStats();
+        showMessage('saveMessage', '🔒 Semua bulan berhasil dikunci!', 'success');
+        
+        if (isOfflineMode) {
+          saveOfflineSettings();
+        }
+      }
+    }
+
+    function enableCurrentMonth() {
+      if (!isAdminLoggedIn || isLoading) return;
+      
+      const currentMonth = new Date().getMonth() + 1;
+      currentSettings.enabled = [currentMonth];
+      updateAllMonthCards();
+      updateStatus();
+      updateStats();
+      showMessage('saveMessage', '📅 Berhasil membuka bulan ini saja!', 'success');
+      
+      if (isOfflineMode) {
+        saveOfflineSettings();
+      }
+    }
+
+    function enablePreviousMonths() {
+      if (!isAdminLoggedIn || isLoading) return;
+      
+      const currentMonth = new Date().getMonth() + 1;
+      const enabledMonths = [];
+      
+      for (let i = 0; i < 3; i++) {
+        let month = currentMonth - i;
+        if (month <= 0) month += 12;
+        enabledMonths.push(month);
+      }
+      
+      currentSettings.enabled = enabledMonths;
+      updateAllMonthCards();
+      updateStatus();
+      updateStats();
+      showMessage('saveMessage', '📈 Berhasil membuka 3 bulan terakhir!', 'success');
+      
+      if (isOfflineMode) {
+        saveOfflineSettings();
+      }
+    }
+
+    // ============ SAVE/EXPORT FUNCTIONS ============
+    async function saveSettings() {
+      const success = await saveSettingsToServer();
+      if (success) {
+        // Additional success actions if needed
+      }
+    }
+
+    function exportSettings() {
+      const session = JSON.parse(localStorage.getItem(CONFIG.ADMIN_SESSION_KEY) || '{}');
+      const settings = {
+        ...currentSettings,
+        exportTime: new Date().toISOString(),
+        exportedBy: session.code || 'unknown',
+        months: MONTHS.filter(m => currentSettings.enabled && currentSettings.enabled.includes(m.id)),
+        version: '2.1',
+        serverBased: !isOfflineMode,
+        offlineMode: isOfflineMode
+      };
+
+      const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `month-settings-${isOfflineMode ? 'offline' : 'server'}-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showMessage('saveMessage', '📤 Pengaturan berhasil diekspor!', 'success');
+    }
+
+    // ============ UTILITY FUNCTIONS ============
+    function goBack() {
+      if (document.referrer) {
+        window.history.back();
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+
+    // ============ INITIALIZATION ============
+    async function initializeApp() {
+      console.log('Initializing Month Settings Admin Panel...');
+      
+      // Check admin session first
+      checkAdminSession();
+      
+      // Initialize connection status
+      updateConnectionStatus('checking');
+      
+      // Load settings from server (with CORS handling)
+      await loadSettingsFromServer();
+      
+      // Show appropriate panel
+      showAppropriatePanel();
+      
+      // Setup event listeners
+      setupEventListeners();
+      
+      console.log('Month Settings Admin Panel initialized');
+    }
+
+    function setupEventListeners() {
+      // Admin code enter key
+      const adminCode = document.getElementById('adminCode');
+      if (adminCode) {
+        adminCode.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            adminLogin();
+          }
+        });
+      }
+
+      // Auto-save when months are toggled (with debounce)
+      let autoSaveTimeout;
+      const originalToggleMonth = toggleMonth;
+      toggleMonth = function(monthId) {
+        originalToggleMonth(monthId);
+        
+        if (!isOfflineMode) {
+          // Auto-save after 2 seconds of no changes
+          clearTimeout(autoSaveTimeout);
+          autoSaveTimeout = setTimeout(() => {
+            if (isAdminLoggedIn) {
+              console.log('Auto-saving settings...');
+              saveSettings();
+            }
+          }, 2000);
+        }
+      };
+
+      // Page visibility change
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && isAdminLoggedIn && !isOfflineMode) {
+          // Page visible again, reload settings to check for updates
+          loadSettingsFromServer().then(() => {
+            updateAllMonthCards();
+            updateStatus();
+            updateStats();
+          });
+        }
+      });
+
+      // Before unload warning
+      window.addEventListener('beforeunload', function(e) {
+        if (isAdminLoggedIn && !isOfflineMode) {
+          // Auto-save before leaving
+          saveSettings();
+        }
+      });
+
+      // Online/offline events
+      window.addEventListener('online', function() {
+        if (!isOfflineMode) {
+          updateConnectionStatus('online');
+          // Try to sync when back online
+          loadSettingsFromServer();
+        }
+      });
+
+      window.addEventListener('offline', function() {
+        updateConnectionStatus('offline');
+      });
+    }
+
+    // ============ MAIN INITIALIZATION ============
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeApp();
+    });
+
+    // ============ GLOBAL DEBUG FUNCTIONS ============
+    window.MonthAdminDebug = {
+      getCurrentSettings: () => {
+        console.log('Current settings:', currentSettings);
+        console.log('Offline mode:', isOfflineMode);
+        console.log('Connection attempts:', connectionAttempts);
+        return currentSettings;
+      },
+      
+      forceReload: async () => {
+        console.log('Force reloading settings from server...');
+        isOfflineMode = false;
+        connectionAttempts = 0;
+        await loadSettingsFromServer();
+        if (isAdminLoggedIn) {
+          updateAllMonthCards();
+          updateStatus();
+          updateStats();
+        }
+        console.log('Settings reloaded');
+      },
+      
+      forceSave: async () => {
+        console.log('Force saving settings to server...');
+        const result = await saveSettingsToServer();
+        console.log('Save result:', result);
+        return result;
+      },
+      
+      simulateSettings: (months) => {
+        if (!Array.isArray(months)) {
+          console.error('Months must be an array of numbers (1-12)');
+          return;
+        }
+        
+        console.log('Simulating settings:', months);
+        currentSettings.enabled = months;
+        if (isAdminLoggedIn) {
+          updateAllMonthCards();
+          updateStatus();
+          updateStats();
+        }
+        
+        if (isOfflineMode) {
+          saveOfflineSettings();
+        }
+      },
+      
+      switchToOfflineMode: () => {
+        enableOfflineMode();
+        console.log('Switched to offline mode');
+      },
+      
+      switchToOnlineMode: () => {
+        isOfflineMode = false;
+        connectionAttempts = 0;
+        loadSettingsFromServer();
+        console.log('Attempting to switch to online mode');
+      },
+      
+      checkServerConnection: async () => {
+        return await testConnection();
+      },
+      
+      getConnectionInfo: () => {
+        return {
+          isOfflineMode: isOfflineMode,
+          connectionAttempts: connectionAttempts,
+          maxAttempts: MAX_CONNECTION_ATTEMPTS,
+          scriptUrl: CONFIG.GOOGLE_SCRIPT_URL
+        };
+      },
+      
+      clearOfflineData: () => {
+        localStorage.removeItem(CONFIG.OFFLINE_STORAGE_KEY);
+        console.log('Offline data cleared');
+      },
+      
+      getAdminSession: () => {
+        const session = localStorage.getItem(CONFIG.ADMIN_SESSION_KEY);
+        if (session) {
+          try {
+            return JSON.parse(session);
+          } catch {
+            return null;
+          }
+        }
+        return null;
+      }
+    };
+
+    console.log('=== MONTH SETTINGS ADMIN PANEL (CORS-RESISTANT) ===');
+    console.log('Available debug commands:');
+    console.log('MonthAdminDebug.getCurrentSettings() - Lihat pengaturan saat ini');
+    console.log('MonthAdminDebug.forceReload() - Muat ulang dari server');
+    console.log('MonthAdminDebug.forceSave() - Paksa simpan ke server');
+    console.log('MonthAdminDebug.simulateSettings([1,2,3]) - Simulasi pengaturan');
+    console.log('MonthAdminDebug.switchToOfflineMode() - Beralih ke mode offline');
+    console.log('MonthAdminDebug.switchToOnlineMode() - Coba beralih ke mode online');
+    console.log('MonthAdminDebug.checkServerConnection() - Test koneksi server');
+    console.log('MonthAdminDebug.getConnectionInfo() - Info koneksi');
+    console.log('MonthAdminDebug.clearOfflineData() - Hapus data offline');
+    console.log('MonthAdminDebug.getAdminSession() - Lihat sesi admin');
+    console.log('');
+    console.log('FITUR BARU:');
+    console.log('- CORS error detection & handling');
+    console.log('- Offline mode dengan local storage');
+    console.log('- Connection retry mechanism');
+    console.log('- Better error messages');
+  </script>
+</body>
+</html>
