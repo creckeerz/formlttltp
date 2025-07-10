@@ -87,6 +87,20 @@
       color: #155724;
     }
 
+    .cors-warning {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      color: #856404;
+    }
+
+    .cors-warning h4 {
+      margin-top: 0;
+      color: #dc3545;
+    }
+
     .admin-section {
       background: #f8f9fa;
       padding: 30px;
@@ -406,6 +420,21 @@
         <strong>⚠️ PENTING:</strong> Halaman ini hanya untuk Administrator. Pengaturan berlaku untuk semua user.
       </div>
 
+      <!-- CORS Warning (akan ditampilkan jika ada masalah CORS) -->
+      <div id="corsWarning" class="cors-warning" style="display: none;">
+        <h4>🚫 CORS Error Detected</h4>
+        <p><strong>Problem:</strong> Browser memblokir koneksi ke Google Apps Script karena CORS policy.</p>
+        <p><strong>Solusi:</strong></p>
+        <ol>
+          <li>Pastikan Google Apps Script sudah di-deploy ulang dengan pengaturan yang benar</li>
+          <li>Pastikan "Execute as: Me" dan "Who has access: Anyone" di Apps Script deployment</li>
+          <li>Refresh halaman ini setelah Apps Script di-deploy ulang</li>
+          <li>Atau gunakan mode offline untuk testing</li>
+        </ol>
+        <button class="btn btn-info" onclick="retryConnection()">🔄 Coba Lagi</button>
+        <button class="btn btn-warning" onclick="enableOfflineMode()">📱 Mode Offline</button>
+      </div>
+
       <!-- Loading State -->
       <div id="loadingState" class="loading">
         <div class="spinner"></div>
@@ -416,7 +445,8 @@
       <div id="errorState" class="warning-banner error" style="display: none;">
         <strong>❌ Error:</strong> <span id="errorMessage"></span>
         <br><br>
-        <button class="btn btn-primary" onclick="location.reload()">🔄 Muat Ulang</button>
+        <button class="btn btn-primary" onclick="retryConnection()">🔄 Coba Lagi</button>
+        <button class="btn btn-warning" onclick="enableOfflineMode()">📱 Mode Offline</button>
       </div>
 
       <!-- Admin Login Section -->
@@ -435,6 +465,11 @@
 
       <!-- Admin Panel -->
       <div id="adminPanel" style="display: none;">
+        <!-- Connection Status -->
+        <div id="connectionStatus" class="status-info info">
+          <strong>Status Koneksi:</strong> <span id="connectionText">Mengecek...</span>
+        </div>
+
         <!-- Stats Section -->
         <div class="stats-section">
           <h3>📊 Statistik Pengaturan</h3>
@@ -491,6 +526,9 @@
             <button class="btn btn-primary" onclick="exportSettings()">
               📤 Export Pengaturan
             </button>
+            <button class="btn btn-info" onclick="testConnection()">
+              🔗 Test Koneksi
+            </button>
             <button class="btn btn-danger" onclick="adminLogout()">
               🚪 Logout Admin
             </button>
@@ -508,7 +546,8 @@
       GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyEzAE76ehrufmfu2xs6y3TQf1HECG6cGja9FiTUNIknXDDlGNHefDDpIDcGyEWgly4vA/exec',
       ADMIN_CODES: ['ADMIN2025', 'MONTH_ADMIN', 'SUPERVISOR', 'ADMIN123'],
       ADMIN_SESSION_KEY: 'ltt_admin_session',
-      ADMIN_SESSION_DURATION: 24 * 60 * 60 * 1000 // 24 hours
+      ADMIN_SESSION_DURATION: 24 * 60 * 60 * 1000, // 24 hours
+      OFFLINE_STORAGE_KEY: 'ltt_month_settings_offline'
     };
 
     const MONTHS = [
@@ -530,6 +569,138 @@
     let currentSettings = { enabled: [new Date().getMonth() + 1] };
     let isAdminLoggedIn = false;
     let isLoading = false;
+    let isOfflineMode = false;
+    let connectionAttempts = 0;
+    const MAX_CONNECTION_ATTEMPTS = 3;
+
+    // ============ CORS & CONNECTION HANDLING ============
+    function detectCORSError(error) {
+      const corsIndicators = [
+        'CORS',
+        'Cross-Origin',
+        'Access-Control-Allow-Origin',
+        'blocked by CORS policy',
+        'preflight',
+        'Response to preflight request doesn\'t pass access control check'
+      ];
+      
+      const errorString = error.toString().toLowerCase();
+      return corsIndicators.some(indicator => errorString.includes(indicator.toLowerCase()));
+    }
+
+    function showCORSWarning() {
+      document.getElementById('corsWarning').style.display = 'block';
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'none';
+    }
+
+    function hideCORSWarning() {
+      document.getElementById('corsWarning').style.display = 'none';
+    }
+
+    function retryConnection() {
+      hideCORSWarning();
+      hideErrorState();
+      connectionAttempts = 0;
+      loadSettingsFromServer();
+    }
+
+    function enableOfflineMode() {
+      isOfflineMode = true;
+      hideCORSWarning();
+      hideErrorState();
+      
+      // Load from offline storage
+      loadOfflineSettings();
+      showMessage('saveMessage', '📱 Mode offline diaktifkan - pengaturan hanya tersimpan lokal', 'warning');
+      updateConnectionStatus('offline');
+    }
+
+    function updateConnectionStatus(status) {
+      const statusEl = document.getElementById('connectionStatus');
+      const textEl = document.getElementById('connectionText');
+      
+      if (!statusEl || !textEl) return;
+
+      switch(status) {
+        case 'online':
+          statusEl.className = 'status-info info';
+          textEl.innerHTML = '🟢 <strong>Online</strong> - Terhubung ke server';
+          break;
+        case 'offline':
+          statusEl.className = 'status-info warning';
+          textEl.innerHTML = '🔴 <strong>Mode Offline</strong> - Pengaturan tersimpan lokal';
+          break;
+        case 'error':
+          statusEl.className = 'status-info warning';
+          textEl.innerHTML = '⚠️ <strong>Koneksi Bermasalah</strong> - Coba refresh atau gunakan mode offline';
+          break;
+        default:
+          statusEl.className = 'status-info info';
+          textEl.innerHTML = '🔄 <strong>Mengecek...</strong>';
+      }
+    }
+
+    async function testConnection() {
+      try {
+        setLoading(true, 'Testing connection...');
+        updateConnectionStatus('checking');
+        
+        const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=ping&t=${Date.now()}`, {
+          method: 'GET',
+          mode: 'cors'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            updateConnectionStatus('online');
+            showMessage('saveMessage', '✅ Koneksi ke server berhasil!', 'success');
+            isOfflineMode = false;
+          } else {
+            throw new Error('Server response invalid');
+          }
+        } else {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Connection test failed:', error);
+        updateConnectionStatus('error');
+        
+        if (detectCORSError(error)) {
+          showMessage('saveMessage', '❌ CORS Error - Periksa deployment Google Apps Script', 'error');
+        } else {
+          showMessage('saveMessage', '❌ Test koneksi gagal: ' + error.message, 'error');
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ============ OFFLINE STORAGE ============
+    function saveOfflineSettings() {
+      try {
+        localStorage.setItem(CONFIG.OFFLINE_STORAGE_KEY, JSON.stringify(currentSettings));
+        console.log('Settings saved offline:', currentSettings);
+      } catch (error) {
+        console.error('Error saving offline settings:', error);
+      }
+    }
+
+    function loadOfflineSettings() {
+      try {
+        const saved = localStorage.getItem(CONFIG.OFFLINE_STORAGE_KEY);
+        if (saved) {
+          currentSettings = JSON.parse(saved);
+          console.log('Settings loaded from offline storage:', currentSettings);
+        } else {
+          currentSettings = { enabled: [new Date().getMonth() + 1] };
+        }
+      } catch (error) {
+        console.error('Error loading offline settings:', error);
+        currentSettings = { enabled: [new Date().getMonth() + 1] };
+      }
+    }
 
     // ============ ADMIN AUTHENTICATION ============
     function checkAdminSession() {
@@ -587,15 +758,31 @@
       }
     }
 
-    // ============ SERVER COMMUNICATION ============
+    // ============ SERVER COMMUNICATION (WITH CORS HANDLING) ============
     async function loadSettingsFromServer() {
+      if (isOfflineMode) {
+        loadOfflineSettings();
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
+        connectionAttempts++;
         
-        const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=getMonthSettings`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=getMonthSettings&t=${Date.now()}`, {
+          method: 'GET',
+          mode: 'cors',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
-          throw new Error('Server response not OK');
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
@@ -603,14 +790,35 @@
         if (data.success) {
           currentSettings = data.settings || { enabled: [new Date().getMonth() + 1] };
           console.log('Settings loaded from server:', currentSettings);
+          updateConnectionStatus('online');
+          isOfflineMode = false;
         } else {
           throw new Error(data.message || 'Failed to load settings');
         }
         
       } catch (error) {
         console.error('Error loading settings:', error);
-        showErrorState('Gagal memuat pengaturan dari server. Menggunakan pengaturan default.');
-        currentSettings = { enabled: [new Date().getMonth() + 1] };
+        
+        if (detectCORSError(error)) {
+          if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
+            showCORSWarning();
+            return;
+          }
+        }
+        
+        if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
+          showErrorState('Gagal memuat pengaturan dari server setelah beberapa percobaan. Gunakan mode offline atau periksa koneksi.');
+          updateConnectionStatus('error');
+        } else {
+          // Retry after 2 seconds
+          setTimeout(() => {
+            loadSettingsFromServer();
+          }, 2000);
+          return;
+        }
+        
+        // Fallback to offline
+        loadOfflineSettings();
       } finally {
         setLoading(false);
       }
@@ -620,6 +828,13 @@
       if (!isAdminLoggedIn) {
         showMessage('saveMessage', '❌ Anda harus login sebagai admin!', 'error');
         return false;
+      }
+
+      if (isOfflineMode) {
+        saveOfflineSettings();
+        showMessage('saveMessage', '💾 Pengaturan disimpan offline (tidak tersinkron ke server)', 'warning');
+        updateStats();
+        return true;
       }
 
       try {
@@ -635,16 +850,23 @@
           }
         };
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        
         const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
           method: 'POST',
+          mode: 'cors',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-          throw new Error('Server response not OK');
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
@@ -652,467 +874,7 @@
         if (data.success) {
           showMessage('saveMessage', '✅ Pengaturan berhasil disimpan ke server!', 'success');
           updateStats();
-          return true;
-        } else {
-          throw new Error(data.message || 'Failed to save settings');
-        }
-        
-      } catch (error) {
-        console.error('Error saving settings:', error);
-        showMessage('saveMessage', '❌ Gagal menyimpan pengaturan: ' + error.message, 'error');
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    // ============ UI MANAGEMENT ============
-    function setLoading(loading, message = 'Memuat...') {
-      isLoading = loading;
-      const loadingEl = document.getElementById('loadingState');
-      const adminLogin = document.getElementById('adminLogin');
-      const adminPanel = document.getElementById('adminPanel');
-      const saveBtn = document.getElementById('saveBtn');
-      
-      if (loading) {
-        loadingEl.style.display = 'block';
-        loadingEl.querySelector('p').textContent = message;
-        adminLogin.style.display = 'none';
-        adminPanel.style.display = 'none';
-        if (saveBtn) saveBtn.disabled = true;
-      } else {
-        loadingEl.style.display = 'none';
-        if (saveBtn) saveBtn.disabled = false;
-        showAppropriatePanel();
-      }
-    }
-
-    function showAppropriatePanel() {
-      const adminLogin = document.getElementById('adminLogin');
-      const adminPanel = document.getElementById('adminPanel');
-      const errorState = document.getElementById('errorState');
-      
-      errorState.style.display = 'none';
-      
-      if (isAdminLoggedIn) {
-        showAdminPanel();
-      } else {
-        showLoginPanel();
-      }
-    }
-
-    function showLoginPanel() {
-      document.getElementById('adminLogin').style.display = 'block';
-      document.getElementById('adminPanel').style.display = 'none';
-    }
-
-    function showAdminPanel() {
-      document.getElementById('adminLogin').style.display = 'none';
-      document.getElementById('adminPanel').style.display = 'block';
-      generateMonthGrid();
-      updateAllMonthCards();
-      updateStatus();
-      updateStats();
-    }
-
-    function showErrorState(message) {
-      const errorState = document.getElementById('errorState');
-      const errorMessage = document.getElementById('errorMessage');
-      
-      errorMessage.textContent = message;
-      errorState.style.display = 'block';
-      
-      document.getElementById('adminLogin').style.display = 'none';
-      document.getElementById('adminPanel').style.display = 'none';
-    }
-
-    function showError(element, message) {
-      element.textContent = message;
-      element.style.display = 'block';
-      
-      setTimeout(() => {
-        element.style.display = 'none';
-      }, 5000);
-    }
-
-    function showMessage(elementId, message, type = 'success') {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-
-      el.textContent = message;
-      el.className = type === 'success' ? 'success-message' : 'error-message';
-      el.style.display = 'block';
-
-      setTimeout(() => {
-        el.style.display = 'none';
-      }, 5000);
-    }
-
-    // ============ MONTH MANAGEMENT ============
-    function generateMonthGrid() {
-      const grid = document.getElementById('monthGrid');
-      if (!grid) return;
-
-      grid.innerHTML = '';
-      const currentMonth = new Date().getMonth() + 1;
-      
-      MONTHS.forEach(month => {
-        const card = document.createElement('div');
-        card.className = 'month-card';
-        card.id = `month-${month.id}`;
-        card.onclick = () => toggleMonth(month.id);
-        
-        if (month.id === currentMonth) {
-          card.classList.add('current');
-        }
-        
-        card.innerHTML = `
-          <div class="toggle-icon" id="icon-${month.id}">🔒</div>
-          <div class="month-name">${month.name}</div>
-          <div class="month-status" id="status-${month.id}">Terkunci</div>
-        `;
-        
-        grid.appendChild(card);
-      });
-    }
-
-    function toggleMonth(monthId) {
-      if (!isAdminLoggedIn || isLoading) return;
-
-      if (!currentSettings.enabled) {
-        currentSettings.enabled = [];
-      }
-
-      const index = currentSettings.enabled.indexOf(monthId);
-      if (index > -1) {
-        currentSettings.enabled.splice(index, 1);
-      } else {
-        currentSettings.enabled.push(monthId);
-      }
-
-      updateMonthCard(monthId);
-      updateStatus();
-      updateStats();
-    }
-
-    function updateMonthCard(monthId) {
-      const card = document.getElementById(`month-${monthId}`);
-      const icon = document.getElementById(`icon-${monthId}`);
-      const status = document.getElementById(`status-${monthId}`);
-      
-      if (!card) return;
-
-      const isEnabled = currentSettings.enabled && currentSettings.enabled.includes(monthId);
-      const currentMonth = new Date().getMonth() + 1;
-      
-      card.className = 'month-card';
-      if (monthId === currentMonth) {
-        card.classList.add('current');
-      }
-      card.classList.add(isEnabled ? 'enabled' : 'disabled');
-      
-      icon.textContent = isEnabled ? '🔓' : '🔒';
-      status.textContent = isEnabled ? 'Terbuka' : 'Terkunci';
-      status.className = `month-status ${isEnabled ? 'enabled' : 'disabled'}`;
-    }
-
-    function updateAllMonthCards() {
-      MONTHS.forEach(month => {
-        updateMonthCard(month.id);
-      });
-    }
-
-    function updateStatus() {
-      const statusText = document.getElementById('statusText');
-      
-      if (statusText) {
-        const enabledCount = currentSettings.enabled ? currentSettings.enabled.length : 0;
-        const enabledMonths = currentSettings.enabled ? 
-          currentSettings.enabled.map(id => MONTHS.find(m => m.id === id)?.shortName).join(', ') : 
-          'Tidak ada';
-        
-        statusText.innerHTML = `${enabledCount} bulan aktif (${enabledMonths})`;
-      }
-    }
-
-    function updateStats() {
-      const enabledCount = document.getElementById('enabledCount');
-      const currentMonthStatus = document.getElementById('currentMonthStatus');
-      const lastUpdateTime = document.getElementById('lastUpdateTime');
-      
-      if (enabledCount) {
-        const count = currentSettings.enabled ? currentSettings.enabled.length : 0;
-        enabledCount.textContent = count;
-      }
-      
-      if (currentMonthStatus) {
-        const currentMonth = new Date().getMonth() + 1;
-        const isCurrentEnabled = currentSettings.enabled && currentSettings.enabled.includes(currentMonth);
-        currentMonthStatus.textContent = isCurrentEnabled ? '✅' : '❌';
-      }
-      
-      if (lastUpdateTime) {
-        if (currentSettings.lastUpdated) {
-          const updateDate = new Date(currentSettings.lastUpdated);
-          const timeAgo = getTimeAgo(updateDate);
-          lastUpdateTime.textContent = timeAgo;
-        } else {
-          lastUpdateTime.textContent = '-';
-        }
-      }
-    }
-
-    function getTimeAgo(date) {
-      const now = new Date();
-      const diffMs = now - date;
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMins / 60);
-      const diffDays = Math.floor(diffHours / 24);
-      
-      if (diffMins < 1) return 'Baru saja';
-      if (diffMins < 60) return `${diffMins}m yang lalu`;
-      if (diffHours < 24) return `${diffHours}h yang lalu`;
-      if (diffDays < 7) return `${diffDays}d yang lalu`;
-      return date.toLocaleDateString();
-    }
-
-    // ============ QUICK ACTIONS ============
-    function enableAllMonths() {
-      if (!isAdminLoggedIn || isLoading) return;
-      
-      currentSettings.enabled = MONTHS.map(m => m.id);
-      updateAllMonthCards();
-      updateStatus();
-      updateStats();
-      showMessage('saveMessage', '✅ Semua bulan berhasil dibuka!', 'success');
-    }
-
-    function disableAllMonths() {
-      if (!isAdminLoggedIn || isLoading) return;
-      
-      if (confirm('Yakin ingin mengunci semua bulan?')) {
-        currentSettings.enabled = [];
-        updateAllMonthCards();
-        updateStatus();
-        updateStats();
-        showMessage('saveMessage', '🔒 Semua bulan berhasil dikunci!', 'success');
-      }
-    }
-
-    function enableCurrentMonth() {
-      if (!isAdminLoggedIn || isLoading) return;
-      
-      const currentMonth = new Date().getMonth() + 1;
-      currentSettings.enabled = [currentMonth];
-      updateAllMonthCards();
-      updateStatus();
-      updateStats();
-      showMessage('saveMessage', '📅 Berhasil membuka bulan ini saja!', 'success');
-    }
-
-    function enablePreviousMonths() {
-      if (!isAdminLoggedIn || isLoading) return;
-      
-      const currentMonth = new Date().getMonth() + 1;
-      const enabledMonths = [];
-      
-      for (let i = 0; i < 3; i++) {
-        let month = currentMonth - i;
-        if (month <= 0) month += 12;
-        enabledMonths.push(month);
-      }
-      
-      currentSettings.enabled = enabledMonths;
-      updateAllMonthCards();
-      updateStatus();
-      updateStats();
-      showMessage('saveMessage', '📈 Berhasil membuka 3 bulan terakhir!', 'success');
-    }
-
-    // ============ SAVE/EXPORT FUNCTIONS ============
-    async function saveSettings() {
-      const success = await saveSettingsToServer();
-      if (success) {
-        // Additional success actions if needed
-      }
-    }
-
-    function exportSettings() {
-      const session = JSON.parse(localStorage.getItem(CONFIG.ADMIN_SESSION_KEY) || '{}');
-      const settings = {
-        ...currentSettings,
-        exportTime: new Date().toISOString(),
-        exportedBy: session.code || 'unknown',
-        months: MONTHS.filter(m => currentSettings.enabled && currentSettings.enabled.includes(m.id)),
-        version: '2.0',
-        serverBased: true
-      };
-
-      const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `month-settings-server-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      showMessage('saveMessage', '📤 Pengaturan berhasil diekspor!', 'success');
-    }
-
-    // ============ UTILITY FUNCTIONS ============
-    function goBack() {
-      if (document.referrer) {
-        window.history.back();
-      } else {
-        window.location.href = 'index.html';
-      }
-    }
-
-    // ============ INITIALIZATION ============
-    async function initializeApp() {
-      console.log('Initializing Month Settings Admin Panel...');
-      
-      // Check admin session first
-      checkAdminSession();
-      
-      // Load settings from server
-      await loadSettingsFromServer();
-      
-      // Show appropriate panel
-      showAppropriatePanel();
-      
-      // Setup event listeners
-      setupEventListeners();
-      
-      console.log('Month Settings Admin Panel initialized');
-    }
-
-    function setupEventListeners() {
-      // Admin code enter key
-      const adminCode = document.getElementById('adminCode');
-      if (adminCode) {
-        adminCode.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            adminLogin();
-          }
-        });
-      }
-
-      // Auto-save when months are toggled (with debounce)
-      let autoSaveTimeout;
-      const originalToggleMonth = toggleMonth;
-      toggleMonth = function(monthId) {
-        originalToggleMonth(monthId);
-        
-        // Auto-save after 2 seconds of no changes
-        clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(() => {
-          if (isAdminLoggedIn) {
-            console.log('Auto-saving settings...');
-            saveSettings();
-          }
-        }, 2000);
-      };
-
-      // Page visibility change
-      document.addEventListener('visibilitychange', function() {
-        if (!document.hidden && isAdminLoggedIn) {
-          // Page visible again, reload settings to check for updates
-          loadSettingsFromServer().then(() => {
-            updateAllMonthCards();
-            updateStatus();
-            updateStats();
-          });
-        }
-      });
-
-      // Before unload warning
-      window.addEventListener('beforeunload', function(e) {
-        if (isAdminLoggedIn) {
-          // Auto-save before leaving
-          saveSettings();
-        }
-      });
-    }
-
-    // ============ MAIN INITIALIZATION ============
-    document.addEventListener('DOMContentLoaded', function() {
-      initializeApp();
-    });
-
-    // ============ GLOBAL DEBUG FUNCTIONS ============
-    window.MonthAdminDebug = {
-      getCurrentSettings: () => {
-        console.log('Current server settings:', currentSettings);
-        return currentSettings;
-      },
-      
-      forceReload: async () => {
-        console.log('Force reloading settings from server...');
-        await loadSettingsFromServer();
-        if (isAdminLoggedIn) {
-          updateAllMonthCards();
-          updateStatus();
-          updateStats();
-        }
-        console.log('Settings reloaded');
-      },
-      
-      forceSave: async () => {
-        console.log('Force saving settings to server...');
-        const result = await saveSettingsToServer();
-        console.log('Save result:', result);
-        return result;
-      },
-      
-      simulateSettings: (months) => {
-        if (!Array.isArray(months)) {
-          console.error('Months must be an array of numbers (1-12)');
-          return;
-        }
-        
-        console.log('Simulating settings:', months);
-        currentSettings.enabled = months;
-        if (isAdminLoggedIn) {
-          updateAllMonthCards();
-          updateStatus();
-          updateStats();
-        }
-      },
-      
-      checkServerConnection: async () => {
-        try {
-          const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=ping`);
-          const data = await response.json();
-          console.log('Server connection:', data);
-          return data;
-        } catch (error) {
-          console.error('Server connection failed:', error);
-          return { success: false, error: error.message };
-        }
-      },
-      
-      getAdminSession: () => {
-        const session = localStorage.getItem(CONFIG.ADMIN_SESSION_KEY);
-        if (session) {
-          try {
-            return JSON.parse(session);
-          } catch {
-            return null;
-          }
-        }
-        return null;
-      }
-    };
-
-    console.log('=== MONTH SETTINGS ADMIN PANEL (SERVER-BASED) ===');
-    console.log('Available debug commands:');
-    console.log('MonthAdminDebug.getCurrentSettings() - Lihat pengaturan saat ini');
-    console.log('MonthAdminDebug.forceReload() - Muat ulang dari server');
-    console.log('MonthAdminDebug.forceSave() - Paksa simpan ke server');
-    console.log('MonthAdminDebug.simulateSettings([1,2,3]) - Simulasi pengaturan');
-    console.log('MonthAdminDebug.checkServerConnection() - Test koneksi server');
-    console.log('MonthAdminDebug.getAdminSession() - Lihat sesi admin');
-  </script>
-</body>
-</html>
+          updateConnectionStatus('online');
+          
+          // Also save offline as backup
+          saveOfflineSettings();
