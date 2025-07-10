@@ -429,19 +429,19 @@
   <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
   
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxvqr8ey7AlLInwTyLwSMwB8bEvLe5Ex2tnE9huASwbCSottw8sJUWO2V8TWXw_y2pIiA/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzEopPS-bHiRVbW2hNOEoxA7b66V00KNriCsmqM_hlWzKEVsflEtpRRX6i8KhzdFkBSiw/exec';
     const perPage = 5;
     let allData = [], originalData = [], currentPage = 1;
 
-    // Header yang sesuai dengan Google Apps Script
+    // Header yang sesuai dengan urutan di spreadsheet yang diinginkan
     const defaultHeaders = [
       "Timestamp", "Periode Monitoring", "Nama Penyuluh", "Kecamatan", "Desa",
-      "Luas Baku Sawah (LBS)", "Luas Tanam Tahun Sebelumnya (Ha)", "IP Existing",
       "LTT Padi Reguler (Ha)", "LTT Padi Oplah (Ha)", "LTT Padi Irigasi Pompa (Ha)",
-      "LTT Padi Gogo / Lahan Kering", "LTP Padi Reguler (Ha)", "Provitas Padi Reguler (Ku/Ha)",
-      "LTP Padi Oplah (Ha)", "Provitas Padi Oplah (Ku/Ha)", "LTP Padi Irigasi Pompa (Ha)",
-      "Provitas Padi irigasi Pompa (Ku/Ha)", "LTP Padi Gogo / Lahan Kering", "Provitas Padi Gogo (Ku/Ha)",
-      "LTT Jagung (Ha)", "LTP Jagung (Ha)", "Provitas Jagung (Ku/Ha)"
+      "LTP Padi Reguler (Ha)", "Provitas Padi Reguler (Ku/Ha)", "LTP Padi Oplah (Ha)",
+      "Provitas Padi Oplah (Ku/Ha)", "LTP Padi Irigasi Pompa (Ha)", "Provitas Padi irigasi Pompa (Ku/Ha)",
+      "LTT Padi Gogo / Lahan Kering", "LTP Padi Gogo / Lahan Kering", "LTT Jagung (Ha)",
+      "LTP Jagung (Ha)", "Provitas Jagung (Ku/Ha)", "Luas Baku Sawah (LBS)",
+      "IP Existing", "Luas Tanam Tahun Sebelumnya (Ha)", "Provitas Padi Gogo (Ku/Ha)"
     ];
 
     function renderTablePage(page) {
