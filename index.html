@@ -58,12 +58,45 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       max-width: 768px;
       margin: 0 auto 30px auto;
+      position: relative;
     }
 
     .main-header h1 {
       font-size: 28px;
       margin: 0 0 15px 0;
       color: #2c3e50;
+    }
+
+    /* User info and logout button */
+    .user-info {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    .session-info {
+      font-size: 12px;
+      color: #95a5a6;
     }
 
     .sub-headers {
@@ -232,9 +265,88 @@
       font-size: 14px;
       display: none;
     }
+
+    /* Auth protection overlay */
+    .auth-protection {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 10000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .auth-loading {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    .auth-loading .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Session warning */
+    .session-warning {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #f39c12;
+      color: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      z-index: 10001;
+      text-align: center;
+      display: none;
+    }
+
+    .session-warning button {
+      background: white;
+      color: #f39c12;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      margin: 0 5px;
+      cursor: pointer;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
+  <!-- Auth Protection Overlay -->
+  <div id="authProtection" class="auth-protection">
+    <div class="auth-loading">
+      <div class="spinner"></div>
+      <h3>Memverifikasi akses...</h3>
+      <p>Mohon tunggu sebentar</p>
+    </div>
+  </div>
+
+  <!-- Session Warning -->
+  <div id="sessionWarning" class="session-warning">
+    <h4>⚠️ Sesi Akan Berakhir</h4>
+    <p>Sesi Anda akan berakhir dalam <span id="sessionCountdown">5</span> menit.</p>
+    <button onclick="extendSession()">Perpanjang Sesi</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
   <!-- Offline Status Indicators -->
   <div id="offlineStatus" class="offline-status">
     📡 Status Koneksi
@@ -246,6 +358,14 @@
 
   <!-- Main Header with Sub Headers -->
   <div class="main-header">
+    <div class="user-info">
+      <div class="session-info">
+        <div>Kode: <span id="userCode">***</span></div>
+        <div>Login: <span id="loginTime">***</span></div>
+      </div>
+      <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+    </div>
+    
     <h1>Form Monitoring LTT & LTP</h1>
     <p>Sistem Monitoring Luas Tambah Tanam dan Luas Tambah Panen</p>
     <div class="sub-headers">
@@ -494,6 +614,176 @@
   <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
   
   <script>
+    // ============ AUTHENTICATION SYSTEM ============
+    
+    const SESSION_KEY = 'ltt_session';
+    const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 jam
+    const WARNING_TIME = 5 * 60 * 1000; // Warning 5 menit sebelum expired
+    let sessionWarningInterval = null;
+    let sessionCheckInterval = null;
+
+    // Auth object untuk mengelola autentikasi
+    const LTTAuth = {
+      isLoggedIn: function() {
+        const session = localStorage.getItem(SESSION_KEY);
+        if (!session) return false;
+        
+        try {
+          const sessionData = JSON.parse(session);
+          return Date.now() < sessionData.expiresAt;
+        } catch {
+          return false;
+        }
+      },
+      
+      logout: function() {
+        localStorage.removeItem(SESSION_KEY);
+        // Redirect ke login page
+        // window.location.href = 'login.html';
+        alert('Logout berhasil! Dalam implementasi nyata akan diarahkan ke login.html');
+      },
+      
+      requireAuth: function() {
+        if (!this.isLoggedIn()) {
+          // window.location.href = 'login.html';
+          alert('Sesi berakhir! Dalam implementasi nyata akan diarahkan ke login.html');
+          return false;
+        }
+        return true;
+      },
+      
+      getSession: function() {
+        const session = localStorage.getItem(SESSION_KEY);
+        if (!session) return null;
+        
+        try {
+          return JSON.parse(session);
+        } catch {
+          return null;
+        }
+      },
+
+      extendSession: function() {
+        const session = this.getSession();
+        if (session) {
+          session.expiresAt = Date.now() + SESSION_DURATION;
+          localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+          this.hideSessionWarning();
+          showToast('✅ Sesi berhasil diperpanjang', true);
+        }
+      }
+    };
+
+    // Check authentication saat halaman dimuat
+    function checkAuthentication() {
+      const authProtection = document.getElementById('authProtection');
+      
+      if (!LTTAuth.isLoggedIn()) {
+        // Tidak ada sesi valid, redirect ke login
+        setTimeout(() => {
+          // window.location.href = 'login.html';
+          alert('Akses ditolak! Dalam implementasi nyata akan diarahkan ke login.html');
+        }, 1500);
+        return false;
+      }
+      
+      // Sesi valid, sembunyikan protection overlay
+      authProtection.style.display = 'none';
+      
+      // Update user info di header
+      updateUserInfo();
+      
+      // Start session monitoring
+      startSessionMonitoring();
+      
+      return true;
+    }
+
+    // Update informasi user di header
+    function updateUserInfo() {
+      const session = LTTAuth.getSession();
+      if (session) {
+        document.getElementById('userCode').textContent = session.accessCode;
+        document.getElementById('loginTime').textContent = new Date(session.loginTime).toLocaleTimeString();
+      }
+    }
+
+    // Monitoring sesi
+    function startSessionMonitoring() {
+      // Check session setiap 30 detik
+      sessionCheckInterval = setInterval(() => {
+        if (!LTTAuth.isLoggedIn()) {
+          LTTAuth.logout();
+          return;
+        }
+        
+        const session = LTTAuth.getSession();
+        if (session) {
+          const timeLeft = session.expiresAt - Date.now();
+          
+          // Show warning jika sisa waktu <= 5 menit
+          if (timeLeft <= WARNING_TIME && timeLeft > 0) {
+            showSessionWarning(Math.ceil(timeLeft / 60000)); // Convert ke menit
+          }
+        }
+      }, 30000);
+    }
+
+    // Tampilkan peringatan sesi akan habis
+    function showSessionWarning(minutesLeft) {
+      const warningEl = document.getElementById('sessionWarning');
+      const countdownEl = document.getElementById('sessionCountdown');
+      
+      countdownEl.textContent = minutesLeft;
+      warningEl.style.display = 'block';
+      
+      // Update countdown setiap menit
+      if (!sessionWarningInterval) {
+        sessionWarningInterval = setInterval(() => {
+          const session = LTTAuth.getSession();
+          if (!session) {
+            clearInterval(sessionWarningInterval);
+            sessionWarningInterval = null;
+            return;
+          }
+          
+          const timeLeft = session.expiresAt - Date.now();
+          const minutes = Math.ceil(timeLeft / 60000);
+          
+          if (minutes <= 0) {
+            clearInterval(sessionWarningInterval);
+            sessionWarningInterval = null;
+            LTTAuth.logout();
+            return;
+          }
+          
+          countdownEl.textContent = minutes;
+        }, 60000);
+      }
+    }
+
+    // Sembunyikan peringatan sesi
+    function hideSessionWarning() {
+      document.getElementById('sessionWarning').style.display = 'none';
+      if (sessionWarningInterval) {
+        clearInterval(sessionWarningInterval);
+        sessionWarningInterval = null;
+      }
+    }
+
+    // Global functions untuk button
+    function extendSession() {
+      LTTAuth.extendSession();
+    }
+
+    function logout() {
+      if (confirm('Apakah Anda yakin ingin logout?')) {
+        LTTAuth.logout();
+      }
+    }
+
+    // ============ ORIGINAL FORM FUNCTIONALITY ============
+    
     const scriptURL = 'https://script.google.com/macros/s/AKfycbzEopPS-bHiRVbW2hNOEoxA7b66V00KNriCsmqM_hlWzKEVsflEtpRRX6i8KhzdFkBSiw/exec';
     const perPage = 5;
     let allData = [], originalData = [], currentPage = 1;
@@ -771,6 +1061,12 @@
     }
 
     function loadData() {
+      // Check auth before loading data
+      if (!LTTAuth.isLoggedIn()) {
+        LTTAuth.logout();
+        return;
+      }
+
       fetch(scriptURL + '?read=1')
         .then(res => res.json())
         .then(data => {
@@ -785,6 +1081,12 @@
     }
 
     function exportTableToExcel(filename = 'data_ltt_ltp.xls') {
+      // Check auth before export
+      if (!LTTAuth.isLoggedIn()) {
+        LTTAuth.logout();
+        return;
+      }
+
       const table = document.getElementById("historyTable");
       const html = table.outerHTML;
       const url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
@@ -814,9 +1116,16 @@
 
     // ============ FORM SUBMISSION ============
 
-    // Form submission dengan offline support
+    // Form submission dengan offline support dan auth check
     document.getElementById("monitoringForm").addEventListener('submit', async e => {
       e.preventDefault();
+      
+      // Check auth before submit
+      if (!LTTAuth.isLoggedIn()) {
+        LTTAuth.logout();
+        return;
+      }
+
       const form = e.target;
       const submitButton = form.querySelector("button[type='submit']");
       const formData = new FormData(form);
@@ -936,6 +1245,11 @@
     function initializeApp() {
       console.log('Initializing app...');
       
+      // Check authentication first
+      if (!checkAuthentication()) {
+        return; // Stop initialization if not authenticated
+      }
+      
       // Initialize components
       populateKecamatan();
       loadData();
@@ -993,6 +1307,18 @@
       initializeApp();
     }
 
+    // Check auth sebelum DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+      // Quick auth check to show protection immediately if needed
+      if (!LTTAuth.isLoggedIn()) {
+        setTimeout(() => {
+          // window.location.href = 'login.html';
+          alert('Akses ditolak! Dalam implementasi nyata akan diarahkan ke login.html');
+        }, 1500);
+        return;
+      }
+    });
+
     // jQuery ready dengan fallback
     $(document).ready(function () {
       initSmartWizard();
@@ -1016,6 +1342,39 @@
         }
       }, 1000);
     }
+
+    // Handle page visibility change (untuk session monitoring)
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        // Page visible again, check session
+        if (!LTTAuth.isLoggedIn()) {
+          LTTAuth.logout();
+        }
+      }
+    });
+
+    // Handle beforeunload (warn about unsaved data)
+    window.addEventListener('beforeunload', function(e) {
+      const formData = loadFormDataLocally();
+      if (Object.keys(formData).length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+        return 'Ada data form yang belum tersimpan. Yakin ingin meninggalkan halaman?';
+      }
+    });
+
+    // Cleanup intervals saat page unload
+    window.addEventListener('unload', function() {
+      if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+      }
+      if (sessionWarningInterval) {
+        clearInterval(sessionWarningInterval);
+      }
+    });
+
+    // Make LTTAuth available globally untuk debugging
+    window.LTTAuth = LTTAuth;
   </script>
 </body>
 </html>
