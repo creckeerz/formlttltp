@@ -6,54 +6,180 @@
   <title>Form Monitoring LTT & LTP</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/css/smart_wizard_all.min.css">
   <style>
+    /* Password Screen Styles */
+    .password-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
 
-    .scrollable-table {
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-/* Mencegah teks memanjang memecah baris */
-#historyTable th,
-#historyTable td {
-  white-space: nowrap;
-}
-
-/* Kolom sticky untuk "Nama Penyuluh" (index ke-2) */
-#historyTable th.sticky-col-3 {
-  position: sticky;
-  left: 0;
-  background: #2c3e50; /* warna header sticky seragam */
-  color: white;
-  z-index: 3; /* lebih tinggi dari td */
-}
-
-#historyTable td.sticky-col-3 {
-  position: sticky;
-  left: 0;
-  background: #ffffff; /* warna isi sel sticky sama seperti baris lain */
-  color: #000;
-  z-index: 2;
-}
-
-/* Warna header umum */
-#historyTable th {
-  background: #2c3e50;
-  color: white;
-}
-
-/* Gaya umum */
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #f4f6f9;
-  padding: 20px;
-  margin: 0;
-}
-
-
-    h2 {
+    .password-container {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .password-container h2 {
       color: #2c3e50;
       margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .password-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .password-container button {
+      width: 100%;
+      padding: 12px;
+      background: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .password-container button:hover {
+      background: #27ae60;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .session-info {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .scrollable-table {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+
+    /* Mencegah teks memanjang memecah baris */
+    #historyTable th,
+    #historyTable td {
+      white-space: nowrap;
+    }
+
+    /* Kolom sticky untuk "Nama Penyuluh" (index ke-2) */
+    #historyTable th.sticky-col-3 {
+      position: sticky;
+      left: 0;
+      background: #2c3e50;
+      color: white;
+      z-index: 3;
+    }
+
+    #historyTable td.sticky-col-3 {
+      position: sticky;
+      left: 0;
+      background: #ffffff;
+      color: #000;
+      z-index: 2;
+    }
+
+    /* Warna header umum */
+    #historyTable th {
+      background: #2c3e50;
+      color: white;
+    }
+
+    /* Gaya umum */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .main-header {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      max-width: 768px;
+      margin: 0 auto 30px auto;
+    }
+
+    .main-header h1 {
+      font-size: 28px;
+      margin: 0 0 15px 0;
+      color: #2c3e50;
+    }
+
+    .sub-headers {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .sub-header {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      text-align: center;
+      flex: 1;
+      min-width: 200px;
+      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .sub-header.ltt {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+
+    .sub-header.ltp {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+      box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    }
+
+    .session-timer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(231, 76, 60, 0.9);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
 
     .sw-container {
@@ -141,394 +267,529 @@ body {
       font-size: 14px;
       padding: 8px 16px;
     }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
-  <h2>Form Monitoring LTT & LTP</h2>
-  <div class="sw-container">
-    <form id="monitoringForm">
-      <div id="smartwizard">
-        <ul class="nav">
-          <li><a class="nav-link" href="#step-1">Step 1<br/><small>Info Dasar</small></a></li>
-          <li><a class="nav-link" href="#step-2">Step 2<br/><small>Data LTT</small></a></li>
-          <li><a class="nav-link" href="#step-3">Step 3<br/><small>Data LTP</small></a></li>
-          <li><a class="nav-link" href="#step-4">Step 4<br/><small>Jagung & Submit</small></a></li>
-        </ul>
-
-
-          
-         <div class="tab-content">
-          <!-- STEP 1 -->
-          <div id="step-1" class="tab-pane" role="tabpanel">
-            <label>Timestamp</label>
-            <input type="datetime-local" name="Timestamp" required />
-            <label>Periode Monitoring</label>
-            <select name="Periode Monitoring" required>
-              <option value="">Pilih</option>
-              <option value="Minggu ke 1">Minggu ke 1</option>
-              <option value="Minggu ke 2">Minggu ke 2</option>
-              <option value="Minggu ke 3">Minggu ke 3</option>
-              <option value="Minggu ke 4">Minggu ke 4</option>
-              <option value="Minggu ke 5">Minggu ke 5</option>
-            </select>
-
-            <label>Nama Penyuluh:</label>
-<select name="nama" required>
-  <option value="">-- Pilih Penyuluh --</option>
-  <option>A.PURNAMA PUTRA</option>
-  <option>AAN PUJINURINSAN</option>
-  <option>ABDUL RAHMAN</option>
-  <option>AGUS SAIFUDDIN</option>
-  <option>AGUSMANTO</option>
-  <option>AHADI</option>
-  <option>ALMIZAN</option>
-  <option>ALWAN SASRUDIN</option>
-  <option>ANDI</option>
-  <option>ANDI WIHARDI</option>
-  <option>ANDI WILLIAM</option>
-  <option>ANTO SAPUTRA</option>
-  <option>ARAMIYA</option>
-  <option>BUDI SETIAWAN</option>
-  <option>DARMA IRAWAN</option>
-  <option>DARMADI</option>
-  <option>DARUSSALAM</option>
-  <option>DINO</option>
-  <option>DIYANTO</option>
-  <option>EDI WAHYUDI</option>
-  <option>EDWARDI</option>
-  <option>EKO SURYONO</option>
-  <option>ELYA KANDAU</option>
-  <option>EMELDA</option>
-  <option>ESPAHANI</option>
-  <option>FITRIANI</option>
-  <option>FREEADI</option>
-  <option>HENGKY KUSUMA INDRA</option>
-  <option>HERY PRAMONO</option>
-  <option>IBNU ROSIHAN</option>
-  <option>IMANSYAH</option>
-  <option>IRLAH</option>
-  <option>IWAN APRIANTO</option>
-  <option>JAKA SUBHAN</option>
-  <option>JAWARI</option>
-  <option>JAYA HARTO</option>
-  <option>JUANDA</option>
-  <option>JUANDI</option>
-  <option>JUMIATI</option>
-  <option>KAMRAN</option>
-  <option>KARNILA</option>
-  <option>K.BUDIMAN</option>
-  <option>LILI SINTA RUSTIKA</option>
-  <option>MARNI</option>
-  <option>MUHAMMAD IRHAMSYAH</option>
-  <option>MUHAMMAD SAHADI</option>
-  <option>MULYADI</option>
-  <option>MURNI HADI</option>
-  <option>MURNIATI</option>
-  <option>NAZRULLAH</option>
-  <option>NEVI ARYATI</option>
-  <option>NIRLAWATI</option>
-  <option>NINING MUSWANI</option>
-  <option>NOVI YANA</option>
-  <option>NURLENA</option>
-  <option>NURHAYATI</option>
-  <option>NUR LAILA SARI</option>
-  <option>RAKHMAD BURHAN</option>
-  <option>RENA</option>
-  <option>RIAN PRASOJO</option>
-  <option>RIZA NOVINA</option>
-  <option>ROMI</option>
-  <option>RONA NURBAYA</option>
-  <option>RUSDIANSYAH</option>
-  <option>SAMTIDAR</option>
-  <option>SAR'ANI</option>
-  <option>SARTINI</option>
-  <option>SAPTINO</option>
-  <option>STEPHANUS PUJI SETIAWAN</option>
-  <option>SUHAIMI</option>
-  <option>SUDARTO</option>
-  <option>SUMIATI</option>
-  <option>SUPARJO</option>
-  <option>SURIYANTO</option>
-  <option>TAUPIT</option>
-  <option>TEGUH PRIONO</option>
-  <option>TULUS PRIADI</option>
-  <option>U. NASHIRUDDIN</option>
-  <option>VOLENDI</option>
-  <option>WAHIDAH</option>
-  <option>WINARDI</option>
-  <option>WIWIT</option>
-  <option>YANTI</option>
-  <option>YENI DARMILA</option>
-  <option>YUNIA</option>
-  <option>YUSNANI</option>
-  <option>ZULPIANA</option>
-</select>
-
-            <label>Kecamatan</label>
-            <select name="Kecamatan" id="kecamatanSelect" required></select>
-            <label>Desa</label>
-            <select name="Desa" id="desaSelect" required></select>
-          </div>
-
-          <!-- STEP 2 -->
-          <div id="step-2" class="tab-pane" role="tabpanel">
-            <label>Luas Baku Sawah (LBS)</label>
-            <input type="number" name="Luas Baku Sawah (LBS)" step="0.01" required />
-            <label>Luas Tanam Tahun Sebelumnya (Ha)</label>
-            <input type="number" name="Luas Tanam Tahun Sebelumnya (Ha)" step="0.01" required />
-            <label>IP Existing</label>
-            <input type="text" name="IP Existing" required />
-            <label>LTT Padi Reguler (Ha)</label>
-            <input type="number" name="LTT Padi Reguler (Ha)" step="0.01" required />
-            <label>LTT Padi Oplah (Ha)</label>
-            <input type="number" name="LTT Padi Oplah (Ha)" step="0.01" required />
-            <label>LTT Padi Irigasi Pompa (Ha)</label>
-            <input type="number" name="LTT Padi Irigasi Pompa (Ha)" step="0.01" required />
-            <label>Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering</label>
-            <input type="number" name="Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering" step="0.01"required />
-            <label>LTT Padi Gogo / Lahan Kering</label>
-            <input type="number" name="LTT Padi Gogo / Lahan Kering" step="0.01" required />
-            
-          </div>
-
-          <!-- STEP 3 -->
-          <div id="step-3" class="tab-pane" role="tabpanel">
-            <label>Luas Tambah Panen (LTP) Padi</label>
-            <input type="number" name="Luas Tambah Panen (LTP) Padi" step="0.01" required />
-            <label>LTP Padi Reguler (Ha)</label>
-            <input type="number" name="LTP Padi Reguler (Ha)" step="0.01" required />
-            <label>Provitas Padi Reguler (Ku/Ha)</label>
-            <input type="number" name="Provitas Padi Reguler (Ku/Ha)" step="0.01" required />
-            <label>LTP Padi Oplah (Ha)</label>
-            <input type="number" name="LTP Padi Oplah (Ha)" step="0.01" />
-            <label>Provitas Padi Oplah (Ku/Ha)</label>
-            <input type="number" name="Provitas Padi Oplah (Ku/Ha)" step="0.01" required />
-            <label>LTP Padi Irigasi Pompa (Ha)</label>
-            <input type="number" name="LTP Padi Irigasi Pompa (Ha)" step="0.01" required />
-            <label>Provitas Padi irigasi Pompa (Ku/Ha)</label>
-            <input type="number" name="Provitas Padi irigasi Pompa (Ku/Ha)" step="0.01" required />
-            <label>LTP Padi Gogo / Lahan Kering</label>
-            <input type="number" name="LTP Padi Gogo / Lahan Kering" step="0.01" required />
-            <label>Provitas Padi Gogo (Ku/Ha)</label>
-            <input type="number" name="Provitas Padi Gogo (Ku/Ha)" step="0.01" required />
-          </div>
-
-          <!-- STEP 4 -->
-          <div id="step-4" class="tab-pane" role="tabpanel">
-            <label>Luas Tambah Tanam (LTT) Jagung</label>
-            <input type="number" name="Luas Tambah Tanam (LTT) Jagung" step="0.01" required />
-            <label>LTT Jagung (Ha)</label>
-            <input type="number" name="LTT Jagung (Ha)" step="0.01" required />
-            <label>Luas Tambah Panen (LTP) Jagung</label>
-            <input type="number" name="Luas Tambah Panen (LTP) Jagung" step="0.01" required />
-            <label>LTP Jagung (Ha)</label>
-            <input type="number" name="LTP Jagung (Ha)" step="0.01" required />
-            <label>Provitas Jagung (Ku/Ha)</label>
-            <input type="number" name="Provitas Jagung (Ku/Ha)" step="0.01" required />
-            <button type="submit">✅ Kirim Data</button>
-          </div>
-        </div>
+  <!-- Password Screen -->
+  <div id="passwordScreen" class="password-screen">
+    <div class="password-container">
+      <h2>🔐 Akses Terbatas</h2>
+      <p>Masukkan password untuk mengakses Form Monitoring LTT & LTP</p>
+      <input type="password" id="passwordInput" placeholder="Masukkan password..." />
+      <button onclick="checkPassword()">Masuk</button>
+      <div id="errorMessage" class="error-message"></div>
+      <div class="session-info">
+        <strong>Informasi:</strong><br>
+        • Password akan berlaku selama 30 menit<br>
+        • Setelah 30 menit, Anda harus memasukkan password lagi
       </div>
-    </form>
-  </div>
-
-  <!-- Table & Control -->
-  <div class="controls">
-    <input type="text" id="searchInput" placeholder="🔍 Cari di tabel...">
-    <div>
-      <button type="button" onclick="loadData()">🔄 Reload Data</button>
-      <button type="button" onclick="exportTableToExcel()">📥 Export Excel</button>
     </div>
   </div>
 
-  <div class="table-wrapper scrollable-table">
-    <table id="historyTable">
-      <thead id="tableHead"><tr></tr></thead>
-      <tbody></tbody>
-    </table>
-    <div class="pagination" id="pagination"></div>
+  <!-- Session Timer -->
+  <div id="sessionTimer" class="session-timer hidden">
+    ⏰ Sesi berakhir dalam: <span id="timerDisplay">30:00</span>
+  </div>
+
+  <!-- Main Content -->
+  <div id="mainContent" class="hidden">
+    <!-- Main Header with Sub Headers -->
+    <div class="main-header">
+      <h1>Form Monitoring LTT & LTP</h1>
+      <p>Sistem Monitoring Luas Tambah Tanam dan Luas Tambah Panen</p>
+      <div class="sub-headers">
+        <div class="sub-header ltt">
+          <strong>Luas Tambah Tanam (LTT)</strong><br>
+          <small>Data Penanaman Jagung & Padi</small>
+        </div>
+        <div class="sub-header ltp">
+          <strong>Luas Tambah Panen (LTP)</strong><br>
+          <small>Data Panen Padi & Produktivitas</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="sw-container">
+      <form id="monitoringForm">
+        <div id="smartwizard">
+          <ul class="nav">
+            <li><a class="nav-link" href="#step-1">Step 1<br/><small>Info Dasar</small></a></li>
+            <li><a class="nav-link" href="#step-2">Step 2<br/><small>Data LTT</small></a></li>
+            <li><a class="nav-link" href="#step-3">Step 3<br/><small>Data LTP</small></a></li>
+            <li><a class="nav-link" href="#step-4">Step 4<br/><small>Jagung & Submit</small></a></li>
+          </ul>
+
+          <div class="tab-content">
+            <!-- STEP 1 -->
+            <div id="step-1" class="tab-pane" role="tabpanel">
+              <label>Timestamp</label>
+              <input type="datetime-local" name="Timestamp" required />
+              <label>Periode Monitoring</label>
+              <select name="Periode Monitoring" required>
+                <option value="">Pilih</option>
+                <option value="Minggu ke 1">Minggu ke 1</option>
+                <option value="Minggu ke 2">Minggu ke 2</option>
+                <option value="Minggu ke 3">Minggu ke 3</option>
+                <option value="Minggu ke 4">Minggu ke 4</option>
+                <option value="Minggu ke 5">Minggu ke 5</option>
+              </select>
+
+              <label>Nama Penyuluh:</label>
+              <select name="nama" required>
+                <option value="">-- Pilih Penyuluh --</option>
+                <option>A.PURNAMA PUTRA</option>
+                <option>AAN PUJINURINSAN</option>
+                <option>ABDUL RAHMAN</option>
+                <option>AGUS SAIFUDDIN</option>
+                <option>AGUSMANTO</option>
+                <option>AHADI</option>
+                <option>ALMIZAN</option>
+                <option>ALWAN SASRUDIN</option>
+                <option>ANDI</option>
+                <option>ANDI WIHARDI</option>
+                <option>ANDI WILLIAM</option>
+                <option>ANTO SAPUTRA</option>
+                <option>ARAMIYA</option>
+                <option>BUDI SETIAWAN</option>
+                <option>DARMA IRAWAN</option>
+                <option>DARMADI</option>
+                <option>DARUSSALAM</option>
+                <option>DINO</option>
+                <option>DIYANTO</option>
+                <option>EDI WAHYUDI</option>
+                <option>EDWARDI</option>
+                <option>EKO SURYONO</option>
+                <option>ELYA KANDAU</option>
+                <option>EMELDA</option>
+                <option>ESPAHANI</option>
+                <option>FITRIANI</option>
+                <option>FREEADI</option>
+                <option>HENGKY KUSUMA INDRA</option>
+                <option>HERY PRAMONO</option>
+                <option>IBNU ROSIHAN</option>
+                <option>IMANSYAH</option>
+                <option>IRLAH</option>
+                <option>IWAN APRIANTO</option>
+                <option>JAKA SUBHAN</option>
+                <option>JAWARI</option>
+                <option>JAYA HARTO</option>
+                <option>JUANDA</option>
+                <option>JUANDI</option>
+                <option>JUMIATI</option>
+                <option>KAMRAN</option>
+                <option>KARNILA</option>
+                <option>K.BUDIMAN</option>
+                <option>LILI SINTA RUSTIKA</option>
+                <option>MARNI</option>
+                <option>MUHAMMAD IRHAMSYAH</option>
+                <option>MUHAMMAD SAHADI</option>
+                <option>MULYADI</option>
+                <option>MURNI HADI</option>
+                <option>MURNIATI</option>
+                <option>NAZRULLAH</option>
+                <option>NEVI ARYATI</option>
+                <option>NIRLAWATI</option>
+                <option>NINING MUSWANI</option>
+                <option>NOVI YANA</option>
+                <option>NURLENA</option>
+                <option>NURHAYATI</option>
+                <option>NUR LAILA SARI</option>
+                <option>RAKHMAD BURHAN</option>
+                <option>RENA</option>
+                <option>RIAN PRASOJO</option>
+                <option>RIZA NOVINA</option>
+                <option>ROMI</option>
+                <option>RONA NURBAYA</option>
+                <option>RUSDIANSYAH</option>
+                <option>SAMTIDAR</option>
+                <option>SAR'ANI</option>
+                <option>SARTINI</option>
+                <option>SAPTINO</option>
+                <option>STEPHANUS PUJI SETIAWAN</option>
+                <option>SUHAIMI</option>
+                <option>SUDARTO</option>
+                <option>SUMIATI</option>
+                <option>SUPARJO</option>
+                <option>SURIYANTO</option>
+                <option>TAUPIT</option>
+                <option>TEGUH PRIONO</option>
+                <option>TULUS PRIADI</option>
+                <option>U. NASHIRUDDIN</option>
+                <option>VOLENDI</option>
+                <option>WAHIDAH</option>
+                <option>WINARDI</option>
+                <option>WIWIT</option>
+                <option>YANTI</option>
+                <option>YENI DARMILA</option>
+                <option>YUNIA</option>
+                <option>YUSNANI</option>
+                <option>ZULPIANA</option>
+              </select>
+
+              <label>Kecamatan</label>
+              <select name="Kecamatan" id="kecamatanSelect" required></select>
+              <label>Desa</label>
+              <select name="Desa" id="desaSelect" required></select>
+            </div>
+
+            <!-- STEP 2 -->
+            <div id="step-2" class="tab-pane" role="tabpanel">
+              <label>Luas Baku Sawah (LBS)</label>
+              <input type="number" name="Luas Baku Sawah (LBS)" step="0.01" required />
+              <label>Luas Tanam Tahun Sebelumnya (Ha)</label>
+              <input type="number" name="Luas Tanam Tahun Sebelumnya (Ha)" step="0.01" required />
+              <label>IP Existing</label>
+              <input type="text" name="IP Existing" required />
+              <label>LTT Padi Reguler (Ha)</label>
+              <input type="number" name="LTT Padi Reguler (Ha)" step="0.01" required />
+              <label>LTT Padi Oplah (Ha)</label>
+              <input type="number" name="LTT Padi Oplah (Ha)" step="0.01" required />
+              <label>LTT Padi Irigasi Pompa (Ha)</label>
+              <input type="number" name="LTT Padi Irigasi Pompa (Ha)" step="0.01" required />
+              <label>Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering</label>
+              <input type="number" name="Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering" step="0.01" required />
+              <label>LTT Padi Gogo / Lahan Kering</label>
+              <input type="number" name="LTT Padi Gogo / Lahan Kering" step="0.01" required />
+            </div>
+
+            <!-- STEP 3 -->
+            <div id="step-3" class="tab-pane" role="tabpanel">
+              <h3>Luas Tambah Panen (LTP) Padi</h3>
+              <label>LTP Padi Reguler (Ha)</label>
+              <input type="number" name="LTP Padi Reguler (Ha)" step="0.01" required />
+              <label>Provitas Padi Reguler (Ku/Ha)</label>
+              <input type="number" name="Provitas Padi Reguler (Ku/Ha)" step="0.01" required />
+              <label>LTP Padi Oplah (Ha)</label>
+              <input type="number" name="LTP Padi Oplah (Ha)" step="0.01" />
+              <label>Provitas Padi Oplah (Ku/Ha)</label>
+              <input type="number" name="Provitas Padi Oplah (Ku/Ha)" step="0.01" required />
+              <label>LTP Padi Irigasi Pompa (Ha)</label>
+              <input type="number" name="LTP Padi Irigasi Pompa (Ha)" step="0.01" required />
+              <label>Provitas Padi irigasi Pompa (Ku/Ha)</label>
+              <input type="number" name="Provitas Padi irigasi Pompa (Ku/Ha)" step="0.01" required />
+              <label>LTP Padi Gogo / Lahan Kering</label>
+              <input type="number" name="LTP Padi Gogo / Lahan Kering" step="0.01" required />
+              <label>Provitas Padi Gogo (Ku/Ha)</label>
+              <input type="number" name="Provitas Padi Gogo (Ku/Ha)" step="0.01" required />
+            </div>
+
+            <!-- STEP 4 -->
+            <div id="step-4" class="tab-pane" role="tabpanel">
+              <h3>Luas Tambah Tanam (LTT) Jagung</h3>
+              <label>LTT Jagung (Ha)</label>
+              <input type="number" name="LTT Jagung (Ha)" step="0.01" required />
+              <label>Luas Tambah Panen (LTP) Jagung</label>
+              <input type="number" name="Luas Tambah Panen (LTP) Jagung" step="0.01" required />
+              <label>LTP Jagung (Ha)</label>
+              <input type="number" name="LTP Jagung (Ha)" step="0.01" required />
+              <label>Provitas Jagung (Ku/Ha)</label>
+              <input type="number" name="Provitas Jagung (Ku/Ha)" step="0.01" required />
+              <button type="submit">✅ Kirim Data</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Table & Control -->
+    <div class="controls">
+      <input type="text" id="searchInput" placeholder="🔍 Cari di tabel...">
+      <div>
+        <button type="button" onclick="loadData()">🔄 Reload Data</button>
+        <button type="button" onclick="exportTableToExcel()">📥 Export Excel</button>
+      </div>
+    </div>
+
+    <div class="table-wrapper scrollable-table">
+      <table id="historyTable">
+        <thead id="tableHead"><tr></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <!-- Loading & Toast -->
+  <div id="loadingOverlay" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 20px;
+  ">
+    ⏳ Mengirim data...
+  </div>
+
+  <div id="toast" style="
+    display: none;
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: #2ecc71;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    z-index: 10000;
+  ">
+    ✅ Data berhasil dikirim
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
-  <script>
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbwQRuioUKmffJ74VHkvejZuca7J-1cGwkF-nOJqSIW9kJrdCrfe_pLhS3rvFseKIN6SQA/exec';
-  const perPage = 5;
-  let allData = [], originalData = [], currentPage = 1;
-
-  const defaultHeaders = [
-    "Timestamp", "Periode Monitoring", "Nama Penyuluh", "Kecamatan", "Desa",
-    "Luas Baku Sawah (LBS)", "Luas Tanam Tahun Sebelumnya (Ha)", "IP Existing",
-    "LTT Padi Reguler (Ha)", "LTT Padi Oplah (Ha)", "LTT Padi Irigasi Pompa (Ha)",
-    "Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering", "LTT Padi Gogo / Lahan Kering",
-    "Luas Tambah Panen (LTP) Padi", "LTP Padi Reguler (Ha)", "Provitas Padi Reguler (Ku/Ha)",
-    "LTP Padi Oplah (Ha)", "Provitas Padi Oplah (Ku/Ha)", "LTP Padi Irigasi Pompa (Ha)",
-    "Provitas Padi irigasi Pompa (Ku/Ha)", "LTP Padi Gogo / Lahan Kering", "Provitas Padi Gogo (Ku/Ha)",
-    "Luas Tambah Tanam (LTT) Jagung", "LTT Jagung (Ha)", "Luas Tambah Panen (LTP) Jagung",
-    "LTP Jagung (Ha)", "Provitas Jagung (Ku/Ha)"
-  ];
-
-  const loadingEl = document.getElementById("loading");
-
- function renderTablePage(page) {
-  const tableHead = document.getElementById("tableHead");
-  const tableBody = document.querySelector("#historyTable tbody");
-  currentPage = page;
-  tableBody.innerHTML = '';
   
-  // Buat header dengan kolom ke-3 sticky
-  tableHead.innerHTML = '<tr>' + defaultHeaders.map((h, i) => 
-    `<th class="${i === 2 ? 'sticky-col-3' : ''}">${h}</th>`
-  ).join('') + '</tr>';
+  <script>
+    // Password dan Session Management
+    const APP_PASSWORD = "LTT2024"; // Ganti dengan password yang diinginkan
+    const SESSION_DURATION = 30 * 60 * 1000; // 30 menit dalam milliseconds
+    let sessionTimer = null;
+    let remainingTime = 0;
 
-  const start = (page - 1) * perPage;
-  const end = start + perPage;
-  const pageData = allData.slice(start, end);
-
-  // Buat baris data
-  pageData.forEach(row => {
-    const tr = document.createElement("tr");
-    row.forEach((cell, i) => {
-      const td = document.createElement("td");
-      if (i === 2) td.classList.add("sticky-col-3"); // Kolom "Nama Penyuluh"
-      td.textContent = cell;
-      tr.appendChild(td);
+    // Cek status session saat halaman dimuat
+    window.addEventListener('DOMContentLoaded', function() {
+      checkSessionStatus();
     });
-    tableBody.appendChild(tr);
-  });
 
-  // Pagination
-  const pagination = document.getElementById("pagination");
-  pagination.innerHTML = '';
-  const totalPages = Math.ceil(allData.length / perPage);
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    if (i === page) btn.classList.add("active");
-    btn.onclick = () => renderTablePage(i);
-    pagination.appendChild(btn);
-  }
-}
+    function checkSessionStatus() {
+      const sessionData = JSON.parse(localStorage.getItem('lttSession') || '{}');
+      const now = Date.now();
+      
+      if (sessionData.expiry && now < sessionData.expiry) {
+        // Session masih valid
+        remainingTime = sessionData.expiry - now;
+        showMainContent();
+        startSessionTimer();
+      } else {
+        // Session expired atau tidak ada
+        showPasswordScreen();
+      }
+    }
 
-  function loadData() {
-    fetch(scriptURL + '?read=1')
-      .then(res => res.json())
-      .then(data => {
-        originalData = data.slice(1).reverse();
-        allData = [...originalData];
-        renderTablePage(1);
-      });
-  }
+    function checkPassword() {
+      const password = document.getElementById('passwordInput').value;
+      const errorDiv = document.getElementById('errorMessage');
+      
+      if (password === APP_PASSWORD) {
+        // Password benar
+        const expiry = Date.now() + SESSION_DURATION;
+        localStorage.setItem('lttSession', JSON.stringify({ expiry }));
+        remainingTime = SESSION_DURATION;
+        showMainContent();
+        startSessionTimer();
+        errorDiv.textContent = '';
+      } else {
+        // Password salah
+        errorDiv.textContent = 'Password salah! Silakan coba lagi.';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordInput').focus();
+      }
+    }
 
-  function exportTableToExcel(filename = 'data_ltt_ltp.xls') {
-    const table = document.getElementById("historyTable");
-    const html = table.outerHTML;
-    const url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-  }
+    function showPasswordScreen() {
+      document.getElementById('passwordScreen').classList.remove('hidden');
+      document.getElementById('mainContent').classList.add('hidden');
+      document.getElementById('sessionTimer').classList.add('hidden');
+      document.getElementById('passwordInput').focus();
+    }
 
-  document.getElementById("monitoringForm").addEventListener('submit', e => {
-  e.preventDefault();
-  const form = e.target;
-  const submitButton = form.querySelector("button[type='submit']");
-  const formData = new FormData(form);
+    function showMainContent() {
+      document.getElementById('passwordScreen').classList.add('hidden');
+      document.getElementById('mainContent').classList.remove('hidden');
+      document.getElementById('sessionTimer').classList.remove('hidden');
+    }
 
-  // Format timestamp
-  const rawTimestamp = formData.get("Timestamp");
-  if (rawTimestamp) {
-    const dt = new Date(rawTimestamp);
-    const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:00`;
-    formData.set("Timestamp", formatted);
-  }
+    function startSessionTimer() {
+      if (sessionTimer) clearInterval(sessionTimer);
+      
+      sessionTimer = setInterval(function() {
+        remainingTime -= 1000;
+        
+        const minutes = Math.floor(remainingTime / 60000);
+        const seconds = Math.floor((remainingTime % 60000) / 1000);
+        
+        document.getElementById('timerDisplay').textContent = 
+          `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (remainingTime <= 0) {
+          clearInterval(sessionTimer);
+          localStorage.removeItem('lttSession');
+          alert('⏰ Session telah berakhir. Silakan masukkan password lagi.');
+          showPasswordScreen();
+        }
+      }, 1000);
+    }
 
-  // Tampilkan loading dan disable tombol
-  showLoading();
-  submitButton.disabled = true;
-
-  fetch(scriptURL, {
-    method: 'POST',
-    body: formData
-  })
-    .then(res => res.text())
-    .then(() => {
-      showToast("✅ Data berhasil dikirim", true);
-      form.reset();
-      loadData();
-      document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
-    })
-    .catch(() => {
-      showToast("❌ Gagal mengirim data", false);
-    })
-    .finally(() => {
-      hideLoading();
-      submitButton.disabled = false;
-    });
-});
-
-
-
-  // Search filter
-  document.getElementById("searchInput").addEventListener("input", function () {
-    const keyword = this.value.toLowerCase();
-    allData = originalData.filter(row => row.join(' ').toLowerCase().includes(keyword));
-    renderTablePage(1);
-  });
-
-  // Init Smart Wizard
-  $(document).ready(function () {
-    $('#smartwizard').smartWizard({
-      theme: 'dots',
-      autoAdjustHeight: true,
-      toolbarSettings: {
-        toolbarPosition: 'bottom',
-        showNextButton: true,
-        showPreviousButton: true
+    // Event listener untuk Enter key pada password input
+    document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        checkPassword();
       }
     });
-  });
 
-  // Initial load
-  loadData();
-</script>
+    // Script aplikasi utama
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwQRuioUKmffJ74VHkvejZuca7J-1cGwkF-nOJqSIW9kJrdCrfe_pLhS3rvFseKIN6SQA/exec';
+    const perPage = 5;
+    let allData = [], originalData = [], currentPage = 1;
 
-    <script>
+    const defaultHeaders = [
+      "Timestamp", "Periode Monitoring", "Nama Penyuluh", "Kecamatan", "Desa",
+      "Luas Baku Sawah (LBS)", "Luas Tanam Tahun Sebelumnya (Ha)", "IP Existing",
+      "LTT Padi Reguler (Ha)", "LTT Padi Oplah (Ha)", "LTT Padi Irigasi Pompa (Ha)",
+      "Luas Tambah Tanam (LTT) Padi Gogo / Lahan Kering", "LTT Padi Gogo / Lahan Kering",
+      "Luas Tambah Panen (LTP) Padi", "LTP Padi Reguler (Ha)", "Provitas Padi Reguler (Ku/Ha)",
+      "LTP Padi Oplah (Ha)", "Provitas Padi Oplah (Ku/Ha)", "LTP Padi Irigasi Pompa (Ha)",
+      "Provitas Padi irigasi Pompa (Ku/Ha)", "LTP Padi Gogo / Lahan Kering", "Provitas Padi Gogo (Ku/Ha)",
+      "Luas Tambah Tanam (LTT) Jagung", "LTT Jagung (Ha)", "Luas Tambah Panen (LTP) Jagung",
+      "LTP Jagung (Ha)", "Provitas Jagung (Ku/Ha)"
+    ];
 
-function showLoading() {
-  document.getElementById("loadingOverlay").style.display = "flex";
-}
-function hideLoading() {
-  document.getElementById("loadingOverlay").style.display = "none";
-}
-function showToast(message, success = true) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.style.background = success ? "#2ecc71" : "#e74c3c";
-  toast.style.display = "block";
-  setTimeout(() => {
-    toast.style.display = "none";
-  }, 3000);
-}
+    function renderTablePage(page) {
+      const tableHead = document.getElementById("tableHead");
+      const tableBody = document.querySelector("#historyTable tbody");
+      currentPage = page;
+      tableBody.innerHTML = '';
       
-    form.addEventListener('submit', e => {
-    e.preventDefault();
-    const formData = new FormData(form);
-    fetch(scriptURL, { method: 'POST', body: formData })
-      .then(res => res.text())
-      .then(() => {
-        showToast("✅ Data berhasil dikirim");
-        form.reset();
-        loadData();
-      })
-      .catch(() => showToast("❌ Gagal mengirim data", false));
-  });
+      // Buat header dengan kolom ke-3 sticky
+      tableHead.innerHTML = '<tr>' + defaultHeaders.map((h, i) => 
+        `<th class="${i === 2 ? 'sticky-col-3' : ''}">${h}</th>`
+      ).join('') + '</tr>';
 
-  loadData();
-  </script>
-  
-  <script>
+      const start = (page - 1) * perPage;
+      const end = start + perPage;
+      const pageData = allData.slice(start, end);
+
+      // Buat baris data
+      pageData.forEach(row => {
+        const tr = document.createElement("tr");
+        row.forEach((cell, i) => {
+          const td = document.createElement("td");
+          if (i === 2) td.classList.add("sticky-col-3");
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+      });
+
+      // Pagination
+      const pagination = document.getElementById("pagination");
+      pagination.innerHTML = '';
+      const totalPages = Math.ceil(allData.length / perPage);
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === page) btn.classList.add("active");
+        btn.onclick = () => renderTablePage(i);
+        pagination.appendChild(btn);
+      }
+    }
+
+    function loadData() {
+      fetch(scriptURL + '?read=1')
+        .then(res => res.json())
+        .then(data => {
+          originalData = data.slice(1).reverse();
+          allData = [...originalData];
+          renderTablePage(1);
+        });
+    }
+
+    function exportTableToExcel(filename = 'data_ltt_ltp.xls') {
+      const table = document.getElementById("historyTable");
+      const html = table.outerHTML;
+      const url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+    }
+
+    function showLoading() {
+      document.getElementById("loadingOverlay").style.display = "flex";
+    }
+
+    function hideLoading() {
+      document.getElementById("loadingOverlay").style.display = "none";
+    }
+
+    function showToast(message, success = true) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.style.background = success ? "#2ecc71" : "#e74c3c";
+      toast.style.display = "block";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 3000);
+    }
+
+    // Form submission
+    document.getElementById("monitoringForm").addEventListener('submit', e => {
+      e.preventDefault();
+      const form = e.target;
+      const submitButton = form.querySelector("button[type='submit']");
+      const formData = new FormData(form);
+
+      // Format timestamp
+      const rawTimestamp = formData.get("Timestamp");
+      if (rawTimestamp) {
+        const dt = new Date(rawTimestamp);
+        const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:00`;
+        formData.set("Timestamp", formatted);
+      }
+
+      // Tampilkan loading dan disable tombol
+      showLoading();
+      submitButton.disabled = true;
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.text())
+        .then(() => {
+          showToast("✅ Data berhasil dikirim", true);
+          form.reset();
+          loadData();
+          document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(() => {
+          showToast("❌ Gagal mengirim data", false);
+        })
+        .finally(() => {
+          hideLoading();
+          submitButton.disabled = false;
+        });
+    });
+
+    // Search filter
+    document.getElementById("searchInput").addEventListener("input", function () {
+      const keyword = this.value.toLowerCase();
+      allData = originalData.filter(row => row.join(' ').toLowerCase().includes(keyword));
+      renderTablePage(1);
+    });
+
+    // Init Smart Wizard (hanya setelah main content ditampilkan)
+    function initSmartWizard() {
+      $('#smartwizard').smartWizard({
+        theme: 'dots',
+        autoAdjustHeight: true,
+        toolbarSettings: {
+          toolbarPosition: 'bottom',
+          showNextButton: true,
+          showPreviousButton: true
+        }
+      });
+    }
+
+    // Data kecamatan dan desa
     const desaPerKecamatan = {
       "Selakau": ["Bentunai", "Gayung Bersambut", "Kuala", "Pangkalan Bemban", "Parit Baru (Selakau)", "Parit Kongsi", "Semelagi Besar", "Sungai Daun", "Sungai Nyirih (Selakau)", "Sungai Rusa", "Twi Mentibar"],
       "Selakau Timur": ["Gelik", "Seranggam", "Selakau Tua", "Buduk Sempadang"],
@@ -550,22 +811,25 @@ function showToast(message, success = true) {
       "Tangaran": ["Arung Medang", "Arung Parak", "Merabuan", "Merpati", "Pancur", "Semata", "Simpang Empat", "Tangaran"],
       "Paloh": ["Kalimantan", "Matang Danau", "Tanah Hitam", "Malek", "Nibung", "Sebubus", "Temajuk", "Mentibar"]
     };
-  
-     const kecamatanSelect = document.getElementById("kecamatanSelect");
+
+    const kecamatanSelect = document.getElementById("kecamatanSelect");
     const desaSelect = document.getElementById("desaSelect");
 
-    window.addEventListener("DOMContentLoaded", () => {
+    // Populate kecamatan options
+    function populateKecamatan() {
+      kecamatanSelect.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
       for (let kecamatan in desaPerKecamatan) {
         const option = document.createElement("option");
         option.value = kecamatan;
         option.textContent = kecamatan;
         kecamatanSelect.appendChild(option);
       }
-    });
+    }
 
+    // Update desa options based on selected kecamatan
     kecamatanSelect.addEventListener("change", function () {
       const desaList = desaPerKecamatan[this.value] || [];
-      desaSelect.innerHTML = `<option value="">-- Pilih Desa --</option>`;
+      desaSelect.innerHTML = '<option value="">-- Pilih Desa --</option>';
       desaList.forEach(desa => {
         const option = document.createElement("option");
         option.value = desa;
@@ -573,39 +837,23 @@ function showToast(message, success = true) {
         desaSelect.appendChild(option);
       });
     });
+
+    // Initialize everything setelah session valid
+    function initializeApp() {
+      populateKecamatan();
+      loadData();
+      // Delay init smart wizard sedikit untuk memastikan DOM ready
+      setTimeout(() => {
+        initSmartWizard();
+      }, 100);
+    }
+
+    // Override showMainContent untuk include initialization
+    const originalShowMainContent = showMainContent;
+    showMainContent = function() {
+      originalShowMainContent();
+      initializeApp();
+    };
   </script>
-
-
-  
-  <div id="loadingOverlay" style="
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 20px;
-">
-  ⏳ Mengirim data...
-</div>
-
-<div id="toast" style="
-  display: none;
-  position: fixed;
-  bottom: 20px; left: 50%;
-  transform: translateX(-50%);
-  background: #2ecc71;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  z-index: 10000;
-">
-  ✅ Data berhasil dikirim
-</div>
-
 </body>
 </html>
