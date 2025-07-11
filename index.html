@@ -29,16 +29,6 @@
     border-left: 4px solid #17a2b8;
   }
 
-  .timestamp-loading {
-    background: #fff3cd;
-    color: #856404;
-    padding: 10px;
-    border-radius: 6px;
-    margin-top: 8px;
-    font-size: 13px;
-    border-left: 4px solid #ffc107;
-  }
-
   @keyframes slideIn {
     from {
       opacity: 0;
@@ -90,29 +80,27 @@
     border-color: #28a745;
   }
 
-  /* Server status indicator */
-  .server-status {
-    position: fixed;
-    top: 120px;
-    left: 20px;
-    background: #17a2b8;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    z-index: 1000;
-    display: none;
+  /* Quick month indicator */
+  .quick-month-indicator {
+    display: inline-block;
+    background: #e8f5e8;
+    color: #155724;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-left: 8px;
+    border: 1px solid #c3e6cb;
   }
 
-  .server-status.error {
-    background: #dc3545;
-  }
-
-  .server-status.success {
-    background: #28a745;
+  .quick-month-indicator.locked {
+    background: #fbeaea;
+    color: #721c24;
+    border-color: #f5c6cb;
   }
 </style>
 
+ 
+  
   <style>
     .scrollable-table {
       overflow-x: auto;
@@ -455,17 +443,13 @@
     <button onclick="logout()">Logout</button>
   </div>
 
-  <!-- Status Indicators -->
+  <!-- Offline Status Indicators -->
   <div id="offlineStatus" class="offline-status">
     📡 Status Koneksi
   </div>
   
   <div id="pendingCounter" class="pending-counter">
     📤 <span id="pendingCount">0</span> data menunggu sinkronisasi
-  </div>
-
-  <div id="serverStatus" class="server-status">
-    🔄 Memuat pengaturan bulan...
   </div>
 
   <!-- Main Header with Sub Headers -->
@@ -476,8 +460,8 @@
     <div>Login: <span id="loginTime">***</span></div>
   </div>
       <!-- Link ke month settings -->
-  <a href="month-settings.html" class="admin-panel-link" title="Pengaturan Bulan Input (Admin Only)">
-    ⚙️ Admin: Atur Bulan
+  <a href="month-settings.html" class="admin-panel-link" title="Pengaturan Bulan Input">
+    ⚙️ Atur Bulan
   </a>
   <button class="logout-btn" onclick="logout()">🚪 Logout</button>
 </div>
@@ -731,13 +715,11 @@
   <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
   
   <script>
-    // ============ SERVER-BASED MONTH VALIDATION SYSTEM ============
+    // ============ MONTH LOCK SYSTEM INTEGRATION ============
 
-    const CONFIG = {
-      GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxhl1imMNu5JZuTGhyK-YyHbYJwauAp3_FRTMZChjtgMsLa4uj5kNGA1A2OjCcqQnDIDQ/exec',
-      CACHE_DURATION: 5 * 60 * 1000, // Cache for 5 minutes
-      CACHE_KEY: 'ltt_month_settings_cache',
-      OFFLINE_STORAGE_KEY: 'ltt_month_settings_offline' // SAMA dengan month-settings
+    const MONTH_LOCK_CONFIG = {
+      STORAGE_KEY: 'ltt_month_settings',
+      DEFAULT_ENABLED_MONTHS: [new Date().getMonth() + 1] // Default: bulan ini saja
     };
 
     const MONTHS = [
@@ -756,120 +738,27 @@
     ];
 
     /**
-     * SERVER-BASED MONTH VALIDATOR
+     * MONTH VALIDATOR - untuk digunakan di form utama
      */
     const MonthValidator = {
-      currentSettings: { enabled: [new Date().getMonth() + 1] },
-      isLoading: false,
-      lastFetch: 0,
-
-      async loadSettingsFromServer() {
-        // Check cache first
-        const cached = this.getCachedSettings();
-        if (cached) {
-          this.currentSettings = cached;
-          this.updateUI();
-          console.log('Using cached month settings:', cached);
-        }
-
-        // Always try to fetch fresh data (async)
-        this.fetchSettingsFromServer();
-      },
-
-      getCachedSettings() {
+      
+      loadSettings() {
         try {
-          // PRIORITAS 1: Cek offline settings dari admin panel
-          const offlineSettings = localStorage.getItem(CONFIG.OFFLINE_STORAGE_KEY);
-          if (offlineSettings) {
-            const data = JSON.parse(offlineSettings);
-            console.log('Using offline admin settings:', data);
-            return data;
+          const saved = localStorage.getItem(MONTH_LOCK_CONFIG.STORAGE_KEY);
+          if (saved) {
+            const settings = JSON.parse(saved);
+            return settings.enabled || MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
           }
-
-          // PRIORITAS 2: Cek cache server
-          const cached = localStorage.getItem(CONFIG.CACHE_KEY);
-          if (cached) {
-            const data = JSON.parse(cached);
-            const isExpired = Date.now() - data.timestamp > CONFIG.CACHE_DURATION;
-            if (!isExpired) {
-              console.log('Using cached server settings:', data.settings);
-              return data.settings;
-            }
-          }
+          return MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
         } catch (error) {
-          console.warn('Error reading cached settings:', error);
+          console.warn('Error loading month settings:', error);
+          return MONTH_LOCK_CONFIG.DEFAULT_ENABLED_MONTHS;
         }
-        return null;
-      },
-
-      setCachedSettings(settings) {
-        try {
-          const cacheData = {
-            settings: settings,
-            timestamp: Date.now()
-          };
-          localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify(cacheData));
-        } catch (error) {
-          console.warn('Error caching settings:', error);
-        }
-      },
-
-      async fetchSettingsFromServer() {
-        if (this.isLoading) return;
-        
-        this.isLoading = true;
-        this.showServerStatus('🔄 Memuat pengaturan bulan dari server...', 'loading');
-
-        try {
-          const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=getMonthSettings&t=${Date.now()}`);
-          
-          if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-          }
-
-          const data = await response.json();
-          
-          if (data.success) {
-            this.currentSettings = data.settings || { enabled: [new Date().getMonth() + 1] };
-            this.setCachedSettings(this.currentSettings);
-            this.updateUI();
-            this.showServerStatus('✅ Pengaturan bulan berhasil dimuat', 'success');
-            console.log('Month settings loaded from server:', this.currentSettings);
-          } else {
-            throw new Error(data.message || 'Failed to load settings');
-          }
-          
-        } catch (error) {
-          console.error('Error fetching month settings:', error);
-          this.showServerStatus('❌ Gagal memuat pengaturan dari server', 'error');
-          
-          // Use fallback if no cache available
-          if (!this.getCachedSettings()) {
-            this.currentSettings = { enabled: [new Date().getMonth() + 1] };
-            this.updateUI();
-          }
-        } finally {
-          this.isLoading = false;
-          setTimeout(() => {
-            this.hideServerStatus();
-          }, 3000);
-        }
-      },
-
-      showServerStatus(message, type = 'loading') {
-        const statusEl = document.getElementById('serverStatus');
-        statusEl.textContent = message;
-        statusEl.className = `server-status ${type}`;
-        statusEl.style.display = 'block';
-      },
-
-      hideServerStatus() {
-        const statusEl = document.getElementById('serverStatus');
-        statusEl.style.display = 'none';
       },
 
       isMonthEnabled(month) {
-        return this.currentSettings.enabled && this.currentSettings.enabled.includes(month);
+        const enabledMonths = this.loadSettings();
+        return enabledMonths.includes(month);
       },
 
       validateTimestamp(timestamp) {
@@ -897,16 +786,13 @@
       },
 
       getEnabledMonthsText() {
-        if (!this.currentSettings.enabled || this.currentSettings.enabled.length === 0) {
-          return 'Tidak ada bulan yang diizinkan';
-        }
-        
-        const monthNames = this.currentSettings.enabled
+        const enabledMonths = this.loadSettings();
+        const monthNames = enabledMonths
           .map(id => MONTHS.find(m => m.id === id)?.name)
           .filter(Boolean)
           .join(', ');
         
-        return monthNames;
+        return monthNames || 'Tidak ada bulan yang diizinkan';
       },
 
       setupTimestampValidation() {
@@ -929,49 +815,44 @@
         if (!infoElement) {
           infoElement = document.createElement('div');
           infoElement.className = 'timestamp-info';
+          infoElement.innerHTML = `ℹ️ Bulan yang diizinkan: <strong>${this.getEnabledMonthsText()}</strong>`;
           timestampInput.parentNode.appendChild(infoElement);
         }
 
-        // Create loading element
-        let loadingElement = timestampInput.parentNode.querySelector('.timestamp-loading');
-        if (!loadingElement) {
-          loadingElement = document.createElement('div');
-          loadingElement.className = 'timestamp-loading';
-          loadingElement.innerHTML = '🔄 Memuat pengaturan bulan dari server...';
-          timestampInput.parentNode.appendChild(loadingElement);
-        }
-
-        this.updateUI();
-
         // Add validation on change
         timestampInput.addEventListener('change', (e) => {
-          this.validateInput(e.target, errorElement);
+          const validation = this.validateTimestamp(e.target.value);
+          
+          if (validation.valid) {
+            errorElement.style.display = 'none';
+            timestampInput.style.borderColor = '#28a745';
+          } else {
+            errorElement.textContent = validation.message;
+            errorElement.style.display = 'block';
+            timestampInput.style.borderColor = '#dc3545';
+          }
         });
 
         // Add validation on input (real-time)
         timestampInput.addEventListener('input', (e) => {
-          this.validateInput(e.target, errorElement);
+          if (e.target.value) {
+            const validation = this.validateTimestamp(e.target.value);
+            
+            if (validation.valid) {
+              errorElement.style.display = 'none';
+              timestampInput.style.borderColor = '#28a745';
+            } else {
+              errorElement.textContent = validation.message;
+              errorElement.style.display = 'block';
+              timestampInput.style.borderColor = '#dc3545';
+            }
+          } else {
+            errorElement.style.display = 'none';
+            timestampInput.style.borderColor = '#ccc';
+          }
         });
 
         console.log('Timestamp validation setup complete');
-      },
-
-      validateInput(input, errorElement) {
-        if (input.value) {
-          const validation = this.validateTimestamp(input.value);
-          
-          if (validation.valid) {
-            errorElement.style.display = 'none';
-            input.style.borderColor = '#28a745';
-          } else {
-            errorElement.textContent = validation.message;
-            errorElement.style.display = 'block';
-            input.style.borderColor = '#dc3545';
-          }
-        } else {
-          errorElement.style.display = 'none';
-          input.style.borderColor = '#ccc';
-        }
       },
 
       validateFormTimestamp(formElement) {
@@ -981,35 +862,12 @@
         return this.validateTimestamp(timestampInput.value);
       },
 
-      updateUI() {
-        // Update info element
+      // Function to update info element when settings change
+      updateInfoElement() {
         const infoElement = document.querySelector('.timestamp-info');
-        const loadingElement = document.querySelector('.timestamp-loading');
-        
-        if (this.isLoading) {
-          if (loadingElement) loadingElement.style.display = 'block';
-          if (infoElement) infoElement.style.display = 'none';
-        } else {
-          if (loadingElement) loadingElement.style.display = 'none';
-          if (infoElement) {
-            infoElement.innerHTML = `ℹ️ Bulan yang diizinkan: <strong>${this.getEnabledMonthsText()}</strong>`;
-            infoElement.style.display = 'block';
-          }
+        if (infoElement) {
+          infoElement.innerHTML = `ℹ️ Bulan yang diizinkan: <strong>${this.getEnabledMonthsText()}</strong>`;
         }
-
-        // Re-validate current timestamp if exists
-        const timestampInput = document.querySelector('input[name="Timestamp"]');
-        if (timestampInput && timestampInput.value) {
-          const errorElement = document.querySelector('.timestamp-error');
-          if (errorElement) {
-            this.validateInput(timestampInput, errorElement);
-          }
-        }
-      },
-
-      // Refresh settings from server
-      async refreshSettings() {
-        await this.fetchSettingsFromServer();
       }
     };
 
@@ -1179,7 +1037,7 @@
 
     // ============ ORIGINAL FORM FUNCTIONALITY ============
     
-    const scriptURL = CONFIG.GOOGLE_SCRIPT_URL;
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzEopPS-bHiRVbW2hNOEoxA7b66V00KNriCsmqM_hlWzKEVsflEtpRRX6i8KhzdFkBSiw/exec';
     const perPage = 5;
     let allData = [], originalData = [], currentPage = 1;
     let isOnline = navigator.onLine;
@@ -1210,8 +1068,6 @@
         // Auto sync saat kembali online
         if (!isOnline) {
           syncPendingSubmissions();
-          // Also refresh month settings when back online
-          MonthValidator.refreshSettings();
         }
         isOnline = true;
         
@@ -1412,11 +1268,7 @@
     }
 
     // Event listeners untuk monitoring koneksi
-    window.addEventListener('online', () => {
-      updateConnectionStatus();
-      // Refresh month settings when back online
-      MonthValidator.refreshSettings();
-    });
+    window.addEventListener('online', updateConnectionStatus);
     window.addEventListener('offline', updateConnectionStatus);
 
     // ============ TABLE FUNCTIONALITY ============
@@ -1515,9 +1367,9 @@
       }, 3000);
     }
 
-    // ============ FORM SUBMISSION WITH SERVER-BASED MONTH VALIDATION ============
+    // ============ FORM SUBMISSION WITH MONTH VALIDATION ============
 
-    // Form submission dengan offline support, auth check, dan server-based month validation
+    // Form submission dengan offline support, auth check, dan month validation
     document.getElementById("monitoringForm").addEventListener('submit', async e => {
       e.preventDefault();
       
@@ -1527,10 +1379,10 @@
         return;
       }
 
-      // *** SERVER-BASED MONTH VALIDATION ***
+      // *** VALIDASI BULAN SEBELUM SUBMIT ***
       const validation = MonthValidator.validateFormTimestamp(e.target);
       if (!validation.valid) {
-        alert(validation.message + '\n\nPengaturan bulan dikontrol oleh administrator.');
+        alert(validation.message);
         const timestampInput = e.target.querySelector('input[name="Timestamp"]');
         if (timestampInput) {
           timestampInput.focus();
@@ -1618,7 +1470,7 @@
             const validation = MonthValidator.validateFormTimestamp(form);
             
             if (!validation.valid) {
-              alert(validation.message + '\n\nPengaturan bulan dikontrol oleh administrator.');
+              alert(validation.message);
               const timestampInput = form.querySelector('input[name="Timestamp"]');
               if (timestampInput) {
                 timestampInput.focus();
@@ -1629,7 +1481,7 @@
           }
         });
         
-        console.log('SmartWizard enhanced with server-based month validation');
+        console.log('SmartWizard enhanced with month validation');
       }
     }
 
@@ -1687,8 +1539,8 @@
     // ============ INITIALIZATION ============
 
     // Initialize app
-    async function initializeApp() {
-      console.log('Initializing app with server-based month validation...');
+    function initializeApp() {
+      console.log('Initializing app...');
       
       if (!checkAuthentication()) {
         return; // Stop initialization if not authenticated
@@ -1702,9 +1554,8 @@
       updateConnectionStatus();
       setupAutoSave();
       
-      // *** SETUP SERVER-BASED MONTH VALIDATION ***
+      // *** SETUP MONTH VALIDATION ***
       MonthValidator.setupTimestampValidation();
-      await MonthValidator.loadSettingsFromServer();
       
       // Restore form data jika ada
       setTimeout(() => {
@@ -1713,19 +1564,28 @@
       
       // Auto-sync setiap 30 detik jika online
       setInterval(() => {
-        if (navigator.onLine && getPendingSubmissions().length === 0) {
+        if (navigator.onLine && getPendingSubmissions().length > 0) {
           syncPendingSubmissions();
         }
       }, 30000);
       
-      // *** REFRESH MONTH SETTINGS SETIAP 5 MENIT ***
-      setInterval(() => {
-        if (navigator.onLine) {
-          MonthValidator.refreshSettings();
+      // *** SETUP STORAGE EVENT LISTENER FOR MONTH SETTINGS ***
+      // Listen for changes in month settings (when admin changes them)
+      window.addEventListener('storage', (e) => {
+        if (e.key === MONTH_LOCK_CONFIG.STORAGE_KEY) {
+          console.log('Month settings changed, updating validation...');
+          MonthValidator.updateInfoElement();
+          
+          // Re-validate current timestamp if exists
+          const timestampInput = document.querySelector('input[name="Timestamp"]');
+          if (timestampInput && timestampInput.value) {
+            const event = new Event('change');
+            timestampInput.dispatchEvent(event);
+          }
         }
-      }, 5 * 60 * 1000); // 5 minutes
+      });
       
-      console.log('App initialized successfully with server-based month validation');
+      console.log('App initialized successfully');
     }
 
     // Init Smart Wizard dengan error handling
@@ -1742,7 +1602,7 @@
             }
           });
           
-          // *** ENHANCE DENGAN SERVER-BASED MONTH VALIDATION ***
+          // *** ENHANCE DENGAN MONTH VALIDATION ***
           enhanceSmartWizardValidation();
           
           console.log('SmartWizard initialized successfully');
@@ -1801,7 +1661,7 @@
       }, 1000);
     }
 
-    // Handle page visibility change (untuk session monitoring dan refresh month settings)
+    // Handle page visibility change (untuk session monitoring)
     document.addEventListener('visibilitychange', function() {
       if (!document.hidden) {
         // Page visible again, check session
@@ -1809,10 +1669,8 @@
           LTTAuth.logout();
         }
         
-        // Refresh month settings when page becomes visible
-        if (navigator.onLine) {
-          MonthValidator.refreshSettings();
-        }
+        // Also check if month settings changed while page was hidden
+        MonthValidator.updateInfoElement();
       }
     });
 
@@ -1840,25 +1698,45 @@
     window.LTTAuth = LTTAuth;
     window.MonthValidator = MonthValidator;
     
-    // *** DEBUGGING COMMANDS FOR SERVER-BASED SYSTEM ***
+    // *** DEBUGGING COMMANDS ***
     window.MonthDebug = {
       getCurrentSettings: () => {
-        console.log('Current server month settings:', MonthValidator.currentSettings);
+        const settings = MonthValidator.loadSettings();
+        console.log('Current month settings:', settings);
         console.log('Enabled months text:', MonthValidator.getEnabledMonthsText());
-        return MonthValidator.currentSettings;
-      },
-      
-      refreshFromServer: async () => {
-        console.log('Refreshing month settings from server...');
-        await MonthValidator.refreshSettings();
-        console.log('Updated settings:', MonthValidator.currentSettings);
-        return MonthValidator.currentSettings;
+        return settings;
       },
       
       testTimestamp: (timestamp) => {
         const validation = MonthValidator.validateTimestamp(timestamp);
         console.log(`Testing ${timestamp}:`, validation);
         return validation;
+      },
+      
+      simulateMonthChange: (months) => {
+        if (!Array.isArray(months)) {
+          console.error('Months must be an array of numbers (1-12)');
+          return;
+        }
+        
+        const settings = {
+          enabled: months,
+          lastUpdated: Date.now(),
+          updatedBy: 'debug'
+        };
+        
+        localStorage.setItem(MONTH_LOCK_CONFIG.STORAGE_KEY, JSON.stringify(settings));
+        MonthValidator.updateInfoElement();
+        
+        console.log('Month settings updated to:', months);
+        console.log('New enabled months text:', MonthValidator.getEnabledMonthsText());
+        
+        // Trigger validation on current timestamp if exists
+        const timestampInput = document.querySelector('input[name="Timestamp"]');
+        if (timestampInput && timestampInput.value) {
+          const event = new Event('change');
+          timestampInput.dispatchEvent(event);
+        }
       },
       
       testCurrentTimestamp: () => {
@@ -1875,52 +1753,18 @@
       
       showAllowedMonths: () => {
         console.log('Allowed months:', MonthValidator.getEnabledMonthsText());
-        return MonthValidator.currentSettings.enabled;
-      },
-      
-      checkServerConnection: async () => {
-        try {
-          const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=ping&t=${Date.now()}`);
-          const data = await response.json();
-          console.log('Server connection test:', data);
-          return data;
-        } catch (error) {
-          console.error('Server connection failed:', error);
-          return { success: false, error: error.message };
-        }
-      },
-      
-      getCacheInfo: () => {
-        const cached = MonthValidator.getCachedSettings();
-        const cacheData = localStorage.getItem(CONFIG.CACHE_KEY);
-        console.log('Cache info:', {
-          hasCachedSettings: !!cached,
-          cachedSettings: cached,
-          rawCacheData: cacheData,
-          cacheAge: cacheData ? Date.now() - JSON.parse(cacheData).timestamp : null
-        });
-        return cached;
-      },
-      
-      clearCache: () => {
-        localStorage.removeItem(CONFIG.CACHE_KEY);
-        console.log('Month settings cache cleared');
+        return MonthValidator.loadSettings();
       }
     };
 
-    console.log('=== LTT FORM WITH SERVER-BASED MONTH VALIDATION ===');
+    console.log('=== LTT FORM WITH MONTH VALIDATION ===');
     console.log('Available debug commands:');
-    console.log('MonthDebug.getCurrentSettings() - Lihat pengaturan server saat ini');
-    console.log('MonthDebug.refreshFromServer() - Refresh pengaturan dari server');
+    console.log('MonthDebug.getCurrentSettings() - Lihat pengaturan bulan aktif');
     console.log('MonthDebug.testTimestamp("2025-03-15T10:00") - Test validasi timestamp');
+    console.log('MonthDebug.simulateMonthChange([1,2,3]) - Simulasi perubahan bulan (Jan-Mar)');
     console.log('MonthDebug.testCurrentTimestamp() - Test timestamp yang sedang diinput');
     console.log('MonthDebug.showAllowedMonths() - Tampilkan bulan yang diizinkan');
-    console.log('MonthDebug.checkServerConnection() - Test koneksi ke server');
-    console.log('MonthDebug.getCacheInfo() - Lihat info cache');
-    console.log('MonthDebug.clearCache() - Hapus cache');
-    console.log('');
-    console.log('PERHATIAN: Pengaturan bulan sekarang dikontrol dari server!');
-    console.log('Hanya admin yang bisa mengubah melalui month-settings.html');
+    console.log('MonthValidator.getEnabledMonthsText() - Lihat teks bulan aktif');
   </script>
 </body>
 </html>
