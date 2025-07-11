@@ -665,11 +665,333 @@
         if (session) {
           session.expiresAt = Date.now() + SESSION_DURATION;
           localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-          this.hideSessionWarning();
+          hideSessionWarning();
           showToast('✅ Sesi berhasil diperpanjang', true);
         }
       }
     };
+
+    // ============ MONTH LOCK INTEGRATION ============
+
+    // Check month lock before allowing timestamp input
+    function checkMonthLock(timestamp) {
+      const monthLockConfig = localStorage.getItem('ltt_month_lock_config');
+      if (!monthLockConfig) return { allowed: true };
+      
+      try {
+        const lockConfig = JSON.parse(monthLockConfig);
+        if (!lockConfig.enabled) return { allowed: true };
+        
+        const inputDate = new Date(timestamp);
+        const inputMonth = inputDate.getMonth() + 1; // getMonth() returns 0-11
+        const inputYear = inputDate.getFullYear();
+        
+        if (inputMonth === lockConfig.month && inputYear === lockConfig.year) {
+          return {
+            allowed: false,
+            message: lockConfig.message || `Input data untuk bulan ${getMonthName(lockConfig.month)} ${lockConfig.year} telah ditutup oleh administrator.`
+          };
+        }
+        
+        return { allowed: true };
+      } catch (e) {
+        console.log('Error checking month lock:', e);
+        return { allowed: true };
+      }
+    }
+
+    // Add month name helper function
+    function getMonthName(monthNum) {
+      const months = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      return months[monthNum] || '';
+    }
+
+    // Month lock notification for admin messages
+    function showMonthLockNotification() {
+      const monthLockConfig = localStorage.getItem('ltt_month_lock_config');
+      if (monthLockConfig) {
+        try {
+          const lockConfig = JSON.parse(monthLockConfig);
+          if (lockConfig.enabled && lockConfig.message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+              position: fixed;
+              top: 80px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: #f39c12;
+              color: white;
+              padding: 15px 25px;
+              border-radius: 10px;
+              box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+              z-index: 10001;
+              max-width: 500px;
+              text-align: center;
+              font-weight: 600;
+            `;
+            notification.innerHTML = `
+              <div style="margin-bottom: 10px;">🔒 <strong>Pemberitahuan Sistem</strong></div>
+              <div style="font-size: 14px; font-weight: normal;">${lockConfig.message}</div>
+              <button onclick="this.parentElement.remove()" style="
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 5px;
+                margin-top: 10px;
+                cursor: pointer;
+              ">Tutup</button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 10 seconds
+            setTimeout(() => {
+              if (notification.parentElement) {
+                notification.remove();
+              }
+            }, 10000);
+          }
+        } catch (e) {
+          console.log('Error showing month lock notification:', e);
+        }
+      }
+    }
+
+    // Enhanced timestamp input with month lock validation
+    function setupTimestampValidation() {
+      const timestampInput = document.querySelector('input[name="Timestamp"]');
+      if (timestampInput) {
+        timestampInput.addEventListener('change', function() {
+          if (this.value) {
+            const lockCheck = checkMonthLock(this.value);
+            if (!lockCheck.allowed) {
+              // Show month lock warning
+              const warning = document.createElement('div');
+              warning.style.cssText = `
+                background: #f8d7da;
+                color: #721c24;
+                padding: 10px;
+                border-radius: 5px;
+                margin-top: 5px;
+                font-size: 14px;
+                border-left: 4px solid #e74c3c;
+              `;
+              warning.innerHTML = `🔒 ${lockCheck.message}`;
+              
+              // Remove existing warnings
+              const existingWarnings = this.parentElement.querySelectorAll('.month-lock-warning');
+              existingWarnings.forEach(w => w.remove());
+              
+              warning.classList.add('month-lock-warning');
+              this.parentElement.appendChild(warning);
+              
+              // Reset the input
+              this.value = '';
+              this.focus();
+            } else {
+              // Remove any existing warnings
+              const existingWarnings = this.parentElement.querySelectorAll('.month-lock-warning');
+              existingWarnings.forEach(w => w.remove());
+            }
+          }
+        });
+      }
+    }
+
+    // Admin notification system for users
+    function checkAdminBroadcast() {
+      const broadcast = localStorage.getItem('ltt_admin_broadcast');
+      if (broadcast) {
+        try {
+          const broadcastData = JSON.parse(broadcast);
+          const lastShown = localStorage.getItem('ltt_last_broadcast_shown');
+          
+          // Only show if this is a new broadcast
+          if (!lastShown || parseInt(lastShown) < broadcastData.id) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background: #3498db;
+              color: white;
+              padding: 25px 35px;
+              border-radius: 15px;
+              box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+              z-index: 10003;
+              max-width: 450px;
+              text-align: center;
+              font-family: 'Segoe UI', sans-serif;
+            `;
+            notification.innerHTML = `
+              <div style="font-size: 24px; margin-bottom: 15px;">📢</div>
+              <h3 style="margin-bottom: 15px; font-size: 18px;">Pesan dari Administrator</h3>
+              <p style="margin-bottom: 20px; line-height: 1.5;">${broadcastData.message}</p>
+              <div style="font-size: 12px; opacity: 0.8; margin-bottom: 15px;">
+                ${new Date(broadcastData.timestamp).toLocaleString()}
+              </div>
+              <button onclick="this.parentElement.remove(); localStorage.setItem('ltt_last_broadcast_shown', '${broadcastData.id}')" style="
+                background: white;
+                color: #3498db;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
+              ">Mengerti</button>
+            `;
+            document.body.appendChild(notification);
+            
+            // Mark as shown
+            localStorage.setItem('ltt_last_broadcast_shown', broadcastData.id.toString());
+          }
+        } catch (e) {
+          console.log('Error showing admin broadcast:', e);
+        }
+      }
+    }
+
+    // Broadcast submission events to admin panel
+    function broadcastSubmissionEvent(eventType, formData) {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('ltt_admin_updates');
+        
+        const submissionData = {
+          timestamp: Date.now(),
+          user: LTTAuth.getSession()?.accessCode || 'Unknown',
+          penyuluh: formData.get('nama') || 'Unknown',
+          periode: formData.get('Periode Monitoring') || 'Unknown',
+          kecamatan: formData.get('Kecamatan') || 'Unknown',
+          desa: formData.get('Desa') || 'Unknown'
+        };
+        
+        channel.postMessage({
+          type: eventType,
+          data: submissionData
+        });
+      }
+    }
+
+    // Show admin lock status in UI
+    function showCurrentLockStatus() {
+      const monthLockConfig = localStorage.getItem('ltt_month_lock_config');
+      if (monthLockConfig) {
+        try {
+          const lockConfig = JSON.parse(monthLockConfig);
+          if (lockConfig.enabled) {
+            const statusIndicator = document.createElement('div');
+            statusIndicator.id = 'lockStatusIndicator';
+            statusIndicator.style.cssText = `
+              position: fixed;
+              bottom: 20px;
+              right: 20px;
+              background: #e74c3c;
+              color: white;
+              padding: 10px 15px;
+              border-radius: 8px;
+              font-size: 12px;
+              z-index: 1000;
+              max-width: 200px;
+              box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            `;
+            statusIndicator.innerHTML = `
+              🔒 Bulan ${getMonthName(lockConfig.month)} ${lockConfig.year} dikunci
+            `;
+            document.body.appendChild(statusIndicator);
+          }
+        } catch (e) {
+          console.log('Error showing lock status:', e);
+        }
+      }
+    }
+
+    // ============ BROADCAST CHANNEL LISTENER ============
+
+    // Listen for admin broadcast messages
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel('ltt_admin_updates');
+      
+      channel.addEventListener('message', (event) => {
+        const { type, data } = event.data;
+        
+        switch (type) {
+          case 'FORCE_LOGOUT':
+            // Check if this user should be logged out
+            const session = LTTAuth.getSession();
+            if (session && data.userId && session.accessCode === data.userId) {
+              showToast('🚪 Anda telah di-logout oleh administrator', false);
+              setTimeout(() => {
+                LTTAuth.logout();
+              }, 2000);
+            }
+            break;
+            
+          case 'FORCE_LOGOUT_ALL':
+            showToast('🚪 Semua user telah di-logout oleh administrator', false);
+            setTimeout(() => {
+              LTTAuth.logout();
+            }, 2000);
+            break;
+            
+          case 'ADMIN_MESSAGE':
+            // Show admin broadcast message
+            const adminMsg = document.createElement('div');
+            adminMsg.style.cssText = `
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background: #e74c3c;
+              color: white;
+              padding: 20px 30px;
+              border-radius: 10px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+              z-index: 10002;
+              max-width: 400px;
+              text-align: center;
+            `;
+            adminMsg.innerHTML = `
+              <h3 style="margin-bottom: 15px;">📢 Pesan dari Administrator</h3>
+              <p style="margin-bottom: 15px;">${data.message}</p>
+              <button onclick="this.parentElement.remove()" style="
+                background: white;
+                color: #e74c3c;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: 600;
+              ">OK</button>
+            `;
+            document.body.appendChild(adminMsg);
+            break;
+            
+          case 'MONTH_LOCK_UPDATE':
+            // Month lock settings updated
+            showToast('⚙️ Pengaturan kunci bulan telah diperbarui oleh administrator', true);
+            showMonthLockNotification();
+            
+            // Update lock status indicator
+            const existingIndicator = document.getElementById('lockStatusIndicator');
+            if (existingIndicator) {
+              existingIndicator.remove();
+            }
+            setTimeout(() => {
+              showCurrentLockStatus();
+            }, 1000);
+            break;
+            
+          case 'SESSION_SETTINGS_UPDATE':
+            // Session settings updated
+            showToast('⚙️ Pengaturan session telah diperbarui oleh administrator', true);
+            break;
+        }
+      });
+    }
 
     // Check authentication saat halaman dimuat
     function checkAuthentication() {
@@ -704,7 +1026,7 @@
       }
     }
 
-    // Monitoring sesi
+    // Enhanced session monitoring with admin integration
     function startSessionMonitoring() {
       // Check session setiap 30 detik
       sessionCheckInterval = setInterval(() => {
@@ -717,8 +1039,12 @@
         if (session) {
           const timeLeft = session.expiresAt - Date.now();
           
-          // Show warning jika sisa waktu <= 5 menit
-          if (timeLeft <= WARNING_TIME && timeLeft > 0) {
+          // Check for admin-forced session settings
+          const sessionSettings = JSON.parse(localStorage.getItem('ltt_session_settings') || '{}');
+          const warningTime = (sessionSettings.warningTime || 5) * 60 * 1000;
+          
+          // Show warning jika sisa waktu <= warning time
+          if (timeLeft <= warningTime && timeLeft > 0) {
             showSessionWarning(Math.ceil(timeLeft / 60000)); // Convert ke menit
           }
         }
@@ -777,6 +1103,29 @@
         LTTAuth.logout();
       }
     }
+
+    // Enhanced logout function with admin notification
+    const originalLogout = LTTAuth.logout;
+    LTTAuth.logout = function() {
+      // Broadcast logout to admin before actual logout
+      if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('ltt_admin_updates');
+        const session = this.getSession();
+        if (session) {
+          channel.postMessage({
+            type: 'USER_LOGOUT',
+            data: {
+              accessCode: session.accessCode,
+              penyuluhName: session.penyuluhName || 'Unknown',
+              timestamp: Date.now()
+            }
+          });
+        }
+      }
+      
+      // Call original logout
+      originalLogout.call(this);
+    };
 
     // ============ ORIGINAL FORM FUNCTIONALITY ============
     
@@ -875,7 +1224,7 @@
       return JSON.parse(localStorage.getItem('ltt_form_data') || '{}');
     }
 
-    // Auto-save form setiap input berubah
+    // Auto-save form setiap input berubah dengan admin monitoring
     function setupAutoSave() {
       const form = document.getElementById('monitoringForm');
       const inputs = form.querySelectorAll('input, select');
@@ -887,6 +1236,19 @@
             const formData = new FormData(form);
             saveFormDataLocally(formData);
             showAutoSaveIndicator();
+            
+            // Broadcast form activity to admin (optional - untuk monitoring real-time)
+            if (typeof BroadcastChannel !== 'undefined') {
+              const channel = new BroadcastChannel('ltt_admin_updates');
+              channel.postMessage({
+                type: 'USER_ACTIVITY',
+                data: {
+                  user: LTTAuth.getSession()?.accessCode || 'Unknown',
+                  activity: 'form_input',
+                  timestamp: Date.now()
+                }
+              });
+            }
           }, 1000);
         });
       });
@@ -1110,9 +1472,9 @@
       }, 3000);
     }
 
-    // ============ FORM SUBMISSION ============
+    // ============ FORM SUBMISSION WITH MONTH LOCK CHECK ============
 
-    // Form submission dengan offline support dan auth check
+    // Form submission dengan month lock check dan admin integration
     document.getElementById("monitoringForm").addEventListener('submit', async e => {
       e.preventDefault();
       
@@ -1126,9 +1488,17 @@
       const submitButton = form.querySelector("button[type='submit']");
       const formData = new FormData(form);
 
-      // Format timestamp
+      // Check month lock BEFORE processing submission
       const rawTimestamp = formData.get("Timestamp");
       if (rawTimestamp) {
+        const lockCheck = checkMonthLock(rawTimestamp);
+        if (!lockCheck.allowed) {
+          showToast(`🔒 ${lockCheck.message}`, false);
+          submitButton.disabled = false;
+          return;
+        }
+        
+        // Format timestamp if allowed
         const dt = new Date(rawTimestamp);
         const formatted = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:00`;
         formData.set("Timestamp", formatted);
@@ -1144,6 +1514,9 @@
         form.reset();
         localStorage.removeItem('ltt_form_data');
         submitButton.disabled = false;
+        
+        // Broadcast submission to admin
+        broadcastSubmissionEvent('SUBMISSION_QUEUED', formData);
         return;
       }
 
@@ -1162,6 +1535,9 @@
           localStorage.removeItem('ltt_form_data');
           loadData();
           document.querySelector(".table-wrapper").scrollIntoView({ behavior: 'smooth' });
+          
+          // Broadcast successful submission to admin
+          broadcastSubmissionEvent('SUBMISSION_SUCCESS', formData);
         } else {
           throw new Error('Server error');
         }
@@ -1171,6 +1547,9 @@
         showToast("⚠️ Koneksi bermasalah. Data disimpan lokal dan akan dikirim otomatis saat koneksi stabil", false);
         form.reset();
         localStorage.removeItem('ltt_form_data');
+        
+        // Broadcast failed submission to admin
+        broadcastSubmissionEvent('SUBMISSION_FAILED', formData);
       } finally {
         hideLoading();
         submitButton.disabled = false;
@@ -1235,11 +1614,35 @@
       });
     });
 
+    // ============ ADMIN MONITORING FUNCTIONS ============
+
+    // Check for admin session settings updates
+    function checkSessionSettings() {
+      const adminSessionSettings = localStorage.getItem('ltt_session_settings');
+      if (adminSessionSettings) {
+        try {
+          const settings = JSON.parse(adminSessionSettings);
+          // Apply new session settings if needed
+          if (settings.duration && settings.warningTime) {
+            console.log('Admin session settings applied:', settings);
+          }
+        } catch (e) {
+          console.log('Error applying session settings:', e);
+        }
+      }
+    }
+
+    // Monitor for admin system updates
+    setInterval(() => {
+      checkAdminBroadcast();
+      checkSessionSettings();
+    }, 60000); // Check every minute
+
     // ============ INITIALIZATION ============
 
-    // Initialize app
+    // Enhanced initialization with admin integration
     function initializeApp() {
-      console.log('Initializing app...');
+      console.log('Initializing app with admin integration...');
       
       if (!checkAuthentication()) {
         return; // Stop initialization if not authenticated
@@ -1252,11 +1655,19 @@
       // Setup offline functionality
       updateConnectionStatus();
       setupAutoSave();
+      setupTimestampValidation(); // Add timestamp validation
+      
+      // Check for admin messages and month lock notifications
+      setTimeout(() => {
+        checkAdminBroadcast();
+        showMonthLockNotification();
+        showCurrentLockStatus();
+      }, 1000);
       
       // Restore form data jika ada
       setTimeout(() => {
         restoreFormData();
-      }, 1000);
+      }, 1500);
       
       // Auto-sync setiap 30 detik jika online
       setInterval(() => {
@@ -1265,7 +1676,23 @@
         }
       }, 30000);
       
-      console.log('App initialized successfully');
+      // Broadcast user login to admin
+      if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('ltt_admin_updates');
+        const session = LTTAuth.getSession();
+        if (session) {
+          channel.postMessage({
+            type: 'USER_LOGIN',
+            data: {
+              accessCode: session.accessCode,
+              penyuluhName: session.penyuluhName || 'Unknown',
+              timestamp: Date.now()
+            }
+          });
+        }
+      }
+      
+      console.log('App initialized successfully with admin integration');
     }
 
     // Init Smart Wizard dengan error handling
@@ -1337,12 +1764,17 @@
       }, 1000);
     }
 
-    // Handle page visibility change (untuk session monitoring)
+    // Enhanced visibility change handler
     document.addEventListener('visibilitychange', function() {
       if (!document.hidden) {
         // Page visible again, check session
         if (!LTTAuth.isLoggedIn()) {
           LTTAuth.logout();
+        } else {
+          // Check for new admin messages
+          setTimeout(() => {
+            checkAdminBroadcast();
+          }, 500);
         }
       }
     });
